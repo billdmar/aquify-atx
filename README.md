@@ -71,7 +71,7 @@
 | Map | Leaflet + react-leaflet (OpenStreetMap tiles — no API key) |
 | Auth / DB | Firebase Authentication + Cloud Firestore (v9 modular SDK) |
 | Weather | Open-Meteo API (free, key-less) |
-| Tests | Vitest + React Testing Library · **150 passing tests** |
+| Tests | Vitest + React Testing Library · **150+ passing tests** |
 | CI | GitHub Actions — lint + build + test on every push |
 | Hosting | Firebase Hosting / Vercel |
 
@@ -158,7 +158,7 @@ aquify-atx/
 └── .github/workflows/ci.yml
 ```
 
-**Testing:** 150 passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, component rendering, and filter logic. ESLint clean. GitHub Actions runs lint → build → test on every push.
+**Testing:** 150+ passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, component rendering, and filter logic. ESLint clean. GitHub Actions runs lint → build → test on every push.
 
 **Separation of concerns:** UI components are stateless and receive data via React Context; all Firebase and weather I/O is isolated in `src/lib/` and `src/recommend/`, making the core map and filter experience fully testable without mocking an entire backend.
 
