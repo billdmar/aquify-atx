@@ -30,6 +30,10 @@ export default function Home() {
   const { currentUser } = useAuth()
   const [filters, setFilters] = useState(initialFilters)
   const [userLocation, setUserLocation] = useState(null)
+  // Surfaces geolocation status to the user. The "Near me" button otherwise
+  // fails silently when the browser lacks the API or the user denies access.
+  const [locating, setLocating] = useState(false)
+  const [locationNote, setLocationNote] = useState(null)
   // 'map' is the default; the user can switch to 'list'. Deriving the active
   // view from a single state value (rather than syncing in an effect) avoids a
   // setState-in-effect cascade. The ?focus=<id> param simply feeds the map.
@@ -46,14 +50,28 @@ export default function Home() {
   }
 
   const requestLocation = () => {
-    if (!navigator.geolocation) return
+    if (!navigator.geolocation) {
+      setLocationNote('Location is not supported by this browser.')
+      return
+    }
+    setLocating(true)
+    setLocationNote(null)
     navigator.geolocation.getCurrentPosition(
-      (pos) =>
+      (pos) => {
         setUserLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
-        }),
-      () => setUserLocation(null),
+        })
+        setLocating(false)
+      },
+      () => {
+        setUserLocation(null)
+        setLocating(false)
+        setLocationNote(
+          'Location access is off — enable it to sort and filter by distance.',
+        )
+      },
+      { timeout: 8000 },
     )
   }
 
@@ -92,6 +110,15 @@ export default function Home() {
         </div>
       )}
 
+      {locationNote && (
+        <p
+          role="status"
+          className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800"
+        >
+          {locationNote}
+        </p>
+      )}
+
       <div className="mb-4 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-aqua-800">
           Austin Water Fountains
@@ -100,9 +127,11 @@ export default function Home() {
           <button
             type="button"
             onClick={requestLocation}
-            className="rounded-md bg-aqua-600 px-3 py-2 text-sm font-medium text-white hover:bg-aqua-700"
+            disabled={locating}
+            aria-busy={locating}
+            className="rounded-md bg-aqua-600 px-3 py-2 text-sm font-medium text-white hover:bg-aqua-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            📍 Near me
+            {locating ? 'Locating…' : '📍 Near me'}
           </button>
           <div className="inline-flex overflow-hidden rounded-md border border-aqua-300">
             <button
