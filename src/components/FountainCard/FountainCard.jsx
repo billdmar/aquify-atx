@@ -24,12 +24,19 @@ const STATUS_DOTS = {
   inactive: 'bg-gray-400',
 }
 
+/** Universal cross-platform directions link (Google/Apple Maps on iOS). */
+function directionsUrl(fountain) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${fountain.lat},${fountain.lng}`
+}
+
 /**
  * @param {{
  *   fountain: object,
  *   distanceMiles?: number,
  *   onReview?: (fountain: object) => void,
  *   onLocate?: (fountain: object) => void,
+ *   saved?: boolean,
+ *   onToggleSave?: (fountain: object) => void,
  * }} props
  */
 export default function FountainCard({
@@ -37,6 +44,8 @@ export default function FountainCard({
   distanceMiles,
   onReview,
   onLocate,
+  saved = false,
+  onToggleSave,
 }) {
   const typeBadge = TYPE_BADGE_CLASSES[fountain.type] ?? 'bg-gray-100 text-gray-600'
   const typeLabel = TYPE_LABELS[fountain.type] ?? fountain.type
@@ -89,14 +98,14 @@ export default function FountainCard({
         </p>
       )}
 
-      {/* Action buttons */}
+      {/* Primary actions: locate + review */}
       {(onLocate || onReview) && (
         <div className="flex gap-2 mt-1">
           {onLocate && (
             <button
               type="button"
               onClick={() => onLocate(fountain)}
-              className="flex-1 text-xs font-medium py-1.5 px-3 rounded-lg border border-aqua-300 text-aqua-700 hover:bg-aqua-50 transition-colors"
+              className="flex-1 text-xs font-medium py-1.5 px-3 rounded-lg border border-aqua-300 text-aqua-700 hover:bg-aqua-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-aqua-500 transition-colors"
             >
               Show on map
             </button>
@@ -105,13 +114,47 @@ export default function FountainCard({
             <button
               type="button"
               onClick={() => onReview(fountain)}
-              className="flex-1 text-xs font-medium py-1.5 px-3 rounded-lg bg-aqua-600 text-white hover:bg-aqua-700 transition-colors"
+              className="flex-1 text-xs font-medium py-1.5 px-3 rounded-lg bg-aqua-600 text-white hover:bg-aqua-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-aqua-500 focus-visible:ring-offset-1 transition-colors"
             >
               Leave a review
             </button>
           )}
         </div>
       )}
+
+      {/* Secondary actions: directions (subtle) + save */}
+      <div className="flex items-stretch gap-2">
+        <a
+          href={directionsUrl(fountain)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 items-center justify-center gap-1 text-xs font-medium py-1.5 px-3 rounded-lg text-aqua-600 hover:bg-aqua-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-aqua-500 transition-colors"
+        >
+          <span aria-hidden="true">🧭</span>
+          <span>Get Directions</span>
+        </a>
+        {onToggleSave && (
+          <button
+            type="button"
+            onClick={() => onToggleSave(fountain)}
+            aria-pressed={saved}
+            aria-label={saved ? 'Remove from saved fountains' : 'Save fountain'}
+            className={`flex flex-1 items-center justify-center gap-1 text-xs font-medium py-1.5 px-3 rounded-lg border focus:outline-none focus-visible:ring-2 focus-visible:ring-aqua-500 transition-colors ${
+              saved
+                ? 'border-aqua-600 bg-aqua-50 text-aqua-800'
+                : 'border-aqua-300 text-aqua-700 hover:bg-aqua-50'
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`text-sm leading-none transition-transform duration-150 ${saved ? 'scale-110' : 'scale-100'}`}
+            >
+              {saved ? '♥' : '♡'}
+            </span>
+            <span>{saved ? 'Saved' : 'Save'}</span>
+          </button>
+        )}
+      </div>
     </article>
   )
 }
