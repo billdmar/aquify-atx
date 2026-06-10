@@ -2,12 +2,17 @@
 // list view over the shared fountain data, owns the filter + geolocation state,
 // and hosts the review modal.
 
-import { useState, useMemo, Suspense, lazy } from 'react'
+import { useState, useMemo, useEffect, Suspense, lazy } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useFountains } from '../context/FountainContext'
 import { useAuth } from '../context/AuthContext'
 import { haversineDistance } from '../lib/geo'
 import { isFirebaseConfigured } from '../lib/firebase'
+import {
+  subscribeToFavorites,
+  saveFavorite,
+  removeFavorite,
+} from '../lib/favorites'
 import FilterBar from '../components/FilterBar/FilterBar'
 import FountainList from '../components/FountainList/FountainList'
 import ReviewModal from '../components/ReviewModal/ReviewModal'
@@ -39,10 +44,49 @@ export default function Home() {
   // setState-in-effect cascade. The ?focus=<id> param simply feeds the map.
   const [view, setView] = useState('map') // 'map' | 'list'
   const [reviewTarget, setReviewTarget] = useState(null)
+  const [favoriteIds, setFavoriteIds] = useState([])
   const [searchParams, setSearchParams] = useSearchParams()
 
   // ?focus=<id> (e.g. from the hydration page) centers the map on a fountain.
   const focusId = searchParams.get('focus')
+
+  // In demo mode favorites live in localStorage (no auth needed); when Firebase
+  // is configured we stream the signed-in user's favorites and require login to
+  // save (matching the review-gating pattern).
+  const canSave = !isFirebaseConfigured || Boolean(currentUser)
+
+  useEffect(() => {
+    // In demo mode subscribeToFavorites reads localStorage regardless of uid;
+    // in Firebase mode a missing uid (logged out) reports an empty list via the
+    // error callback, so a single subscription handles both states.
+    const unsubscribe = subscribeToFavorites(
+      currentUser?.uid,
+      setFavoriteIds,
+      () => setFavoriteIds([]),
+    )
+    return unsubscribe
+  }, [currentUser])
+
+  const handleToggleSave = async (fountain) => {
+    const isSaved = favoriteIds.includes(fountain.id)
+    // Optimistic update; in demo mode the subscription is a one-shot read so
+    // this also keeps the UI in sync without a refetch.
+    setFavoriteIds((ids) =>
+      isSaved ? ids.filter((id) => id !== fountain.id) : [...ids, fountain.id],
+    )
+    try {
+      if (isSaved) {
+        await removeFavorite(fountain.id, currentUser)
+      } else {
+        await saveFavorite(fountain.id, currentUser)
+      }
+    } catch {
+      // Roll back on failure (e.g. not signed in with Firebase configured).
+      setFavoriteIds((ids) =>
+        isSaved ? [...ids, fountain.id] : ids.filter((id) => id !== fountain.id),
+      )
+    }
+  }
 
   const handleLocate = (fountain) => {
     setView('map')
@@ -197,6 +241,9 @@ export default function Home() {
                   userLocation={userLocation}
                   focusId={focusId}
                   onReview={setReviewTarget}
+                  favoriteIds={favoriteIds}
+                  onToggleSave={handleToggleSave}
+                  canSave={canSave}
                 />
               </Suspense>
             </div>
@@ -207,6 +254,8 @@ export default function Home() {
               userLocation={userLocation}
               onReview={currentUser ? setReviewTarget : undefined}
               onLocate={handleLocate}
+              favoriteIds={favoriteIds}
+              onToggleSave={canSave ? handleToggleSave : undefined}
             />
           )}
         </section>
