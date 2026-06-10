@@ -10,6 +10,8 @@ import { haversineDistance } from '../../lib/geo'
  *   userLocation: {lat:number,lng:number}|null,
  *   onReview?: (fountain: object) => void,
  *   onLocate?: (fountain: object) => void,
+ *   favoriteIds?: Set<string>|Array<string>,
+ *   onToggleSave?: (fountain: object) => void,
  * }} props
  */
 export default function FountainList({
@@ -17,7 +19,16 @@ export default function FountainList({
   userLocation = null,
   onReview,
   onLocate,
+  favoriteIds,
+  onToggleSave,
 }) {
+  // Normalize favorites to a Set for O(1) lookup; undefined → no save UI.
+  const favoriteSet =
+    favoriteIds instanceof Set
+      ? favoriteIds
+      : Array.isArray(favoriteIds)
+        ? new Set(favoriteIds)
+        : null
   // Annotate with distance when location is available
   const annotated = fountains.map((f) => ({
     ...f,
@@ -53,6 +64,8 @@ export default function FountainList({
           distanceMiles={fountain.distanceMiles}
           onReview={onReview}
           onLocate={onLocate}
+          saved={favoriteSet ? favoriteSet.has(fountain.id) : undefined}
+          onToggleSave={onToggleSave}
         />
       ))}
     </div>

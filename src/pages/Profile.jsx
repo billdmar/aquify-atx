@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useFountains } from '../context/FountainContext'
 import { getUserSubmissions } from '../lib/firestore'
+import { subscribeToFavorites, removeFavorite } from '../lib/favorites'
 
 export default function Profile() {
   const { currentUser, firebaseReady, signOut } = useAuth()
+  const { fountains } = useFountains()
   const navigate = useNavigate()
 
   const [submissions, setSubmissions] = useState([])
   const [submissionsLoading, setSubmissionsLoading] = useState(false)
   const [submissionsError, setSubmissionsError] = useState('')
+  const [favoriteIds, setFavoriteIds] = useState([])
   const [signOutPending, setSignOutPending] = useState(false)
 
   useEffect(() => {
@@ -34,6 +38,31 @@ export default function Profile() {
       cancelled = true
     }
   }, [currentUser])
+
+  // Stream the user's saved fountains (Firebase mode) or read localStorage
+  // (demo mode), mirroring the favorites helper's graceful degradation.
+  useEffect(() => {
+    if (!currentUser) return undefined
+    const unsubscribe = subscribeToFavorites(
+      currentUser.uid,
+      setFavoriteIds,
+      () => setFavoriteIds([]),
+    )
+    return unsubscribe
+  }, [currentUser])
+
+  const savedFountains = favoriteIds
+    .map((id) => fountains.find((f) => f.id === id))
+    .filter(Boolean)
+
+  async function handleUnsave(fountainId) {
+    setFavoriteIds((ids) => ids.filter((id) => id !== fountainId))
+    try {
+      await removeFavorite(fountainId, currentUser)
+    } catch {
+      setFavoriteIds((ids) => [...ids, fountainId])
+    }
+  }
 
   async function handleSignOut() {
     setSignOutPending(true)
@@ -168,6 +197,55 @@ export default function Profile() {
                     {sub.createdAt?.toDate && (
                       <span>{sub.createdAt.toDate().toLocaleDateString()}</span>
                     )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Saved fountains */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mt-6">
+          <h2 className="text-lg font-bold text-aqua-900 mb-4">Saved Fountains</h2>
+
+          {savedFountains.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              You haven&apos;t saved any fountains yet. Tap the heart on a fountain
+              to add it here.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {savedFountains.map((fountain) => (
+                <li
+                  key={fountain.id}
+                  className="rounded-lg border border-slate-200 px-4 py-3 text-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-800">{fountain.name}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {fountain.address}
+                      </p>
+                      <span className="mt-1.5 inline-flex rounded-full bg-aqua-50 px-2 py-0.5 text-xs font-medium capitalize text-aqua-700">
+                        {fountain.type}
+                      </span>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <Link
+                        to={`/?focus=${fountain.id}`}
+                        className="rounded px-1 py-0.5 text-xs font-medium text-aqua-700 hover:text-aqua-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-aqua-500"
+                      >
+                        Show on map
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleUnsave(fountain.id)}
+                        aria-label={`Remove ${fountain.name} from saved fountains`}
+                        className="rounded px-1 py-0.5 text-xs font-medium text-red-600 hover:text-red-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                      >
+                        Unsave
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}
