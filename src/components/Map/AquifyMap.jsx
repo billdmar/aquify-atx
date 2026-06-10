@@ -104,6 +104,11 @@ function MapEffect({ focusId, fountains, userLocation }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+/** Universal cross-platform directions link (Google/Apple Maps on iOS). */
+function directionsUrl(fountain) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${fountain.lat},${fountain.lng}`
+}
+
 /**
  * @param {{
  *   fountains: Array,
@@ -111,6 +116,9 @@ function MapEffect({ focusId, fountains, userLocation }) {
  *   center?: {lat:number,lng:number,zoom?:number},
  *   focusId?: string|null,
  *   onReview?: (fountain:object) => void,
+ *   favoriteIds?: string[],
+ *   onToggleSave?: (fountain:object) => void,
+ *   canSave?: boolean,
  * }} props
  */
 export default function AquifyMap({
@@ -119,6 +127,9 @@ export default function AquifyMap({
   center,
   focusId = null,
   onReview,
+  favoriteIds = [],
+  onToggleSave,
+  canSave = false,
 }) {
   const { currentUser } = useAuth()
   const mapCenter = center ?? AUSTIN_CENTER
@@ -142,7 +153,9 @@ export default function AquifyMap({
         userLocation={userLocation}
       />
 
-      {fountains.map((fountain) => (
+      {fountains.map((fountain) => {
+        const saved = favoriteIds.includes(fountain.id)
+        return (
         <Marker
           key={fountain.id}
           position={[fountain.lat, fountain.lng]}
@@ -243,10 +256,61 @@ export default function AquifyMap({
                   </span>
                 )}
               </div>
+
+              {/* Directions + Save */}
+              <div
+                style={{
+                  marginTop: '8px',
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center',
+                }}
+              >
+                <a
+                  href={directionsUrl(fountain)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    padding: '4px 10px',
+                    color: '#0369a1',
+                    borderRadius: '6px',
+                    fontSize: '0.82em',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span aria-hidden="true">🧭</span> Get Directions
+                </a>
+                {canSave && onToggleSave && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleSave(fountain)}
+                    aria-pressed={saved}
+                    aria-label={
+                      saved ? 'Remove from saved fountains' : 'Save fountain'
+                    }
+                    style={{
+                      padding: '4px 12px',
+                      border: saved ? '1px solid #0084cc' : '1px solid #7dd3fc',
+                      background: saved ? '#e0f2fe' : '#fff',
+                      color: saved ? '#045988' : '#0369a1',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.82em',
+                      fontWeight: '600',
+                      transition: 'background 0.15s ease, border-color 0.15s ease',
+                    }}
+                  >
+                    <span aria-hidden="true">{saved ? '♥' : '♡'}</span>{' '}
+                    {saved ? 'Saved' : 'Save'}
+                  </button>
+                )}
+              </div>
             </div>
           </Popup>
         </Marker>
-      ))}
+        )
+      })}
 
       {/* User location marker */}
       {userLocation && (

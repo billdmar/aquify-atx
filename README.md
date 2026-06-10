@@ -139,6 +139,16 @@ A transparent, rule-based engine in `src/recommend/hydroEngine.js` — not a bla
 
 The recommendation surfaces the specific weather factors that raised it and names the 3 nearest open fountains with walking distances. **This is not medical advice.**
 
+### 🤖 Gemini AI (optional enrichment)
+
+On top of the deterministic engine, the page calls Google's **Gemini** (`gemini-2.0-flash`) for a friendly, Austin-specific hydration tip and a second-opinion cup count. Because Aquify is a **static site**, the API key must never reach the browser — so the call is proxied through a **Vercel serverless function** at [`api/hydrate.js`](api/hydrate.js):
+
+- The client (`src/recommend/aiHydrate.js`) POSTs the current weather to `/api/hydrate`.
+- The function reads `GEMINI_API_KEY` from `process.env`, calls the Gemini REST API, validates the JSON, and returns `{ ok, cups, tip, source }`.
+- If the key is missing or anything fails, the function returns `{ ok: false }` and the UI **silently falls back** to the rule-based result — the app works perfectly with or without AI.
+
+**Setup:** set `GEMINI_API_KEY` in your Vercel project's Environment Variables (server-side only). Do **not** prefix it with `VITE_` — that would inline it into the public bundle. See [`.env.example`](.env.example).
+
 ---
 
 ## 🏗 Architecture & Project Structure

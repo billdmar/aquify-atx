@@ -9,6 +9,7 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useFountains } from '../context/FountainContext'
 import { getHydrationRecommendation } from '../recommend/hydroEngine'
+import { getAiHydration } from '../recommend/aiHydrate'
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -92,6 +93,49 @@ function FountainCard({ fountain }) {
   )
 }
 
+function AiBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-violet-600 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
+      <span aria-hidden="true">✨</span>
+      AI-powered (Gemini)
+    </span>
+  )
+}
+
+function AiTipCard({ ai }) {
+  return (
+    <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5 shadow-sm ring-1 ring-violet-100">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <AiBadge />
+        <span className="text-xs font-semibold text-violet-700">
+          suggests {ai.cups} cups
+        </span>
+      </div>
+      <p className="text-sm leading-relaxed text-violet-900">{ai.tip}</p>
+    </div>
+  )
+}
+
+/** Subtle skeleton shown while the best-effort Gemini call is in flight. */
+function AiTipSkeleton() {
+  return (
+    <div
+      className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5 shadow-sm ring-1 ring-violet-100"
+      aria-hidden="true"
+    >
+      <div className="mb-3 flex items-center gap-2">
+        <AiBadge />
+        <span className="text-xs font-medium text-violet-400">thinking…</span>
+      </div>
+      <div className="space-y-2 animate-pulse">
+        <div className="h-3 w-full rounded bg-violet-100" />
+        <div className="h-3 w-11/12 rounded bg-violet-100" />
+        <div className="h-3 w-3/4 rounded bg-violet-100" />
+      </div>
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -101,6 +145,8 @@ export default function Recommend() {
 
   const [willExercise, setWillExercise] = useState(false)
   const [result, setResult] = useState(null)
+  const [ai, setAi] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
   const [locationDenied, setLocationDenied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -109,14 +155,28 @@ export default function Recommend() {
     async (lat, lng) => {
       setLoading(true)
       setError(null)
+      setAi(null)
+      setAiLoading(false)
       try {
         const rec = await getHydrationRecommendation(lat, lng, willExercise, fountains)
         setResult(rec)
+
+        // Best-effort AI enrichment. If the serverless Gemini proxy is
+        // unavailable (no key, network error, bad response), getAiHydration
+        // returns null and the rule-based result stands unchanged.
+        setAiLoading(true)
+        const aiResult = await getAiHydration({
+          weather: rec.weather,
+          willExercise,
+          baselineCups: rec.cups,
+        })
+        if (aiResult) setAi(aiResult)
       } catch (err) {
         setError('Something went wrong calculating your recommendation. Please try again.')
         console.error(err)
       } finally {
         setLoading(false)
+        setAiLoading(false)
       }
     },
     [willExercise, fountains],
@@ -124,6 +184,7 @@ export default function Recommend() {
 
   const handleGetRecommendation = () => {
     setResult(null)
+    setAi(null)
     setLocationDenied(false)
     setError(null)
 
@@ -213,6 +274,11 @@ export default function Recommend() {
             <p className="mt-3 text-sm text-aqua-700 leading-relaxed">{result.reason}</p>
             <FactorList factors={result.factors} />
           </div>
+
+          {/* AI-powered tip. Shows a subtle skeleton while the best-effort
+              Gemini call is in flight, then the tip if available — and
+              degrades invisibly (renders nothing) when AI is unavailable. */}
+          {ai ? <AiTipCard ai={ai} /> : aiLoading && <AiTipSkeleton />}
 
           {/* Weather strip */}
           <WeatherStrip weather={result.weather} usedFallback={result.usedFallback} />
