@@ -1,8 +1,24 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
+import type { PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
+
+// Opt-in bundle analysis: `npm run analyze` (ANALYZE=true) emits stats.html so
+// the treemap of the production bundle can be inspected. Off for normal
+// builds/CI so they stay unaffected.
+const analyzePlugins: PluginOption[] =
+  process.env.ANALYZE === 'true'
+    ? [
+        visualizer({
+          filename: 'stats.html',
+          gzipSize: true,
+          brotliSize: true,
+        }) as PluginOption,
+      ]
+    : []
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -52,12 +68,18 @@ export default defineConfig({
         ],
       },
     }),
+    ...analyzePlugins,
   ],
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: false,
+    // Vitest owns the unit tests under src/ only. Playwright E2E specs live in
+    // e2e/ and use @playwright/test — keep them out of Vitest's runner so the
+    // two suites never collide.
+    include: ['{src,api}/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['node_modules', 'dist', 'e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
