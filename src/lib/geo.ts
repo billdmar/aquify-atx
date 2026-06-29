@@ -1,20 +1,21 @@
 // Geographic helpers. Single source of truth for distance math so the map,
 // list, filters, and hydration engine all agree.
 
+import type { MapCenter } from '../types'
+
 const EARTH_RADIUS_MILES = 3958.8
 
-const toRadians = (degrees) => (degrees * Math.PI) / 180
+const toRadians = (degrees: number): number => (degrees * Math.PI) / 180
 
 /**
  * Great-circle distance between two lat/lng points, in miles (Haversine).
- *
- * @param {number} lat1
- * @param {number} lng1
- * @param {number} lat2
- * @param {number} lng2
- * @returns {number} distance in miles
  */
-export function haversineDistance(lat1, lng1, lat2, lng2) {
+export function haversineDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
   const dLat = toRadians(lat2 - lat1)
   const dLng = toRadians(lng2 - lng1)
   const a =
@@ -29,14 +30,13 @@ export function haversineDistance(lat1, lng1, lat2, lng2) {
 /**
  * Return the `count` nearest items to a point, each annotated with a
  * `distanceMiles` field, sorted ascending. Items must have `lat`/`lng`.
- *
- * @param {number} lat
- * @param {number} lng
- * @param {Array<{lat:number,lng:number}>} items
- * @param {number} count
- * @returns {Array<object & {distanceMiles:number}>}
  */
-export function nearest(lat, lng, items, count = 3) {
+export function nearest<T extends { lat: number; lng: number }>(
+  lat: number,
+  lng: number,
+  items: T[],
+  count = 3,
+): Array<T & { distanceMiles: number }> {
   return items
     .map((item) => ({
       ...item,
@@ -47,4 +47,4 @@ export function nearest(lat, lng, items, count = 3) {
 }
 
 // Default map center — downtown Austin, TX.
-export const AUSTIN_CENTER = { lat: 30.2672, lng: -97.7431, zoom: 13 }
+export const AUSTIN_CENTER: MapCenter = { lat: 30.2672, lng: -97.7431, zoom: 13 }
