@@ -1,10 +1,16 @@
 @import 'tailwindcss';
 @import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+/* Class-based dark mode: the <html> element gets a `dark` class via useTheme. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
  * Aquify ATX — global styles.
  * Brand palette carried over from the original SwiftUI prototype's
- * systemBlue accent, expanded into a water-themed scale.
+ * systemBlue accent, expanded into a water-themed scale. The 600 shade was
+ * darkened slightly so aqua-on-white text clears WCAG AA (4.5:1).
  */
 @theme {
   --color-aqua-50: #eff9ff;
@@ -12,8 +18,8 @@
   --color-aqua-200: #b6e7ff;
   --color-aqua-300: #75d4ff;
   --color-aqua-400: #2cbeff;
-  --color-aqua-500: #0aa5f0;
-  --color-aqua-600: #0084cc;
+  --color-aqua-500: #0a9ae0;
+  --color-aqua-600: #0077b8;
   --color-aqua-700: #0069a5;
   --color-aqua-800: #045988;
   --color-aqua-900: #0a4a70;
@@ -32,9 +38,26 @@ body {
   background-color: #f8fafc;
 }
 
+html.dark body {
+  color: #e2e8f0;
+  background-color: #0f172a;
+}
+
 /* Leaflet must own a concrete height or the map collapses to 0px. */
 .leaflet-container {
   height: 100%;
   width: 100%;
   z-index: 0;
+}
+
+/* Honour users who prefer reduced motion: neutralize transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

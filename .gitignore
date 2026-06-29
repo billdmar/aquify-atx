@@ -38,3 +38,6 @@ serviceAccountKey.json
 # Test coverage
 coverage/
 .vercel
+
+# PWA dev artifacts
+dev-dist
