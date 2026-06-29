@@ -74,10 +74,10 @@ export default defineConfig({
       // Gate set just below current coverage so regressions fail CI but the
       // bar is honest. Raise as coverage grows.
       thresholds: {
-        statements: 53,
-        branches: 45,
-        functions: 53,
-        lines: 53,
+        statements: 75,
+        branches: 67,
+        functions: 72,
+        lines: 78,
       },
     },
   },
