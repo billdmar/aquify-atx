@@ -69,6 +69,22 @@ A few deliberate engineering bets:
 
 </td>
 </tr>
+<tr>
+<td align="center" width="50%">
+
+**Insights dashboard**
+
+![Fountain insights — totals plus bar charts by facility type, status, and ADA accessibility](docs/screenshots/insights.png)
+
+</td>
+<td align="center" width="50%">
+
+**Dark mode + marker clustering**
+
+![Dark-themed map view with clustered fountain markers showing counts](docs/screenshots/dark-map.png)
+
+</td>
+</tr>
 </table>
 
 <p align="center">
