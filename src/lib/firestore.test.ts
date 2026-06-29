@@ -11,6 +11,8 @@ import {
   upvoteReview,
   deleteReview,
   getUserSubmissions,
+  getPendingSubmissions,
+  setSubmissionStatus,
   ensureUserProfile,
   getReviewsForFountain,
 } from './firestore.js'
@@ -115,6 +117,20 @@ describe('deleteReview (demo mode — throws)', () => {
 describe('getUserSubmissions (demo mode — throws)', () => {
   it('rejects with a "not configured" error', async () => {
     await expect(getUserSubmissions('uid-1')).rejects.toThrow(NOT_CONFIGURED_RE)
+  })
+})
+
+describe('getPendingSubmissions (demo mode — empty queue)', () => {
+  it('resolves to an empty array (no backend)', async () => {
+    await expect(getPendingSubmissions()).resolves.toEqual([])
+  })
+})
+
+describe('setSubmissionStatus (demo mode — throws)', () => {
+  it('rejects with a "not configured" error', async () => {
+    await expect(setSubmissionStatus('sub-1', 'approved')).rejects.toThrow(
+      NOT_CONFIGURED_RE,
+    )
   })
 })
 
