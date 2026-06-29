@@ -1,21 +1,31 @@
 /**
- * aiHydrate.js — Client helper that calls the server-side Gemini proxy.
+ * aiHydrate.ts — Client helper that calls the server-side Gemini proxy.
  *
  * The browser never sees the Gemini API key; it only POSTs to /api/hydrate
  * (a Vercel serverless function). This helper is intentionally forgiving:
  * on ANY failure — no key, network error, non-OK status, malformed body, or
  * the server signalling { ok: false } — it returns null so callers fall back
  * to the deterministic rule-based recommendation.
- *
- * @param {{
- *   weather: { tempF: number, heatIndexF: number, uvIndex: number, humidity: number },
- *   willExercise: boolean,
- *   baselineCups: number,
- * }} payload
- * @param {typeof fetch} [fetchImpl]  — injectable fetch for testing
- * @returns {Promise<{ cups: number, tip: string, source: string } | null>}
  */
-export async function getAiHydration(payload, fetchImpl = fetch) {
+
+import type { Weather } from '../types'
+
+export interface AiHydratePayload {
+  weather: Weather
+  willExercise: boolean
+  baselineCups: number
+}
+
+export interface AiHydration {
+  cups: number
+  tip: string
+  source: string
+}
+
+export async function getAiHydration(
+  payload: AiHydratePayload,
+  fetchImpl: typeof fetch = fetch,
+): Promise<AiHydration | null> {
   try {
     const res = await fetchImpl('/api/hydrate', {
       method: 'POST',

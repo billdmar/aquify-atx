@@ -9,9 +9,9 @@
 // instead of crashing. This lets the app build, lint, test, and render
 // without a live Firebase project.
 
-import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { initializeApp, type FirebaseApp } from 'firebase/app'
+import { getAuth, type Auth } from 'firebase/auth'
+import { getFirestore, type Firestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -30,9 +30,9 @@ export const isFirebaseConfigured = Boolean(
     firebaseConfig.appId,
 )
 
-let app = null
-let auth = null
-let db = null
+let app: FirebaseApp | null = null
+let auth: Auth | null = null
+let db: Firestore | null = null
 
 if (isFirebaseConfigured) {
   app = initializeApp(firebaseConfig)

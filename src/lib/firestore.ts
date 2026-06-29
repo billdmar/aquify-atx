@@ -20,14 +20,22 @@ import {
   onSnapshot,
   setDoc,
   increment,
+  type Firestore,
+  type DocumentReference,
 } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './firebase'
-import localFountains from '../data/fountains.json'
+import localFountainsData from '../data/fountains.json'
+import type { AppUser, Fountain, Review, Submission } from '../types'
+
+const localFountains = localFountainsData as Fountain[]
 
 const NOT_CONFIGURED =
   'Firebase is not configured. Add your credentials to .env to enable this action.'
 
-function requireDb() {
+/** Max characters accepted for a free-text review comment (mirrors firestore.rules). */
+export const MAX_COMMENT_LENGTH = 500
+
+function requireDb(): Firestore {
   if (!isFirebaseConfigured || !db) throw new Error(NOT_CONFIGURED)
   return db
 }
@@ -35,7 +43,7 @@ function requireDb() {
 // ---- Fountains -------------------------------------------------------------
 
 /** Local seed data, used as the demo-mode fallback. */
-export function getLocalFountains() {
+export function getLocalFountains(): Fountain[] {
   return localFountains
 }
 
@@ -47,7 +55,10 @@ export function getLocalFountains() {
  * @param {(err: Error) => void} [onError]
  * @returns {() => void} unsubscribe
  */
-export function subscribeToFountains(onData, onError) {
+export function subscribeToFountains(
+  onData: (fountains: Fountain[]) => void,
+  onError?: (err: Error) => void,
+): () => void {
   if (!isFirebaseConfigured || !db) {
     onData(localFountains)
     return () => {}
@@ -55,7 +66,8 @@ export function subscribeToFountains(onData, onError) {
   const q = query(collection(db, 'fountains'))
   return onSnapshot(
     q,
-    (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    (snap) =>
+      onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Fountain)),
     (err) => {
       if (onError) onError(err)
     },
@@ -64,18 +76,20 @@ export function subscribeToFountains(onData, onError) {
 
 // ---- Submissions -----------------------------------------------------------
 
-export async function submitFountain(fountainData, user) {
+export async function submitFountain(
+  fountainData: Omit<Fountain, 'id'>,
+  user: AppUser,
+): Promise<DocumentReference> {
   const database = requireDb()
   return addDoc(collection(database, 'submissions'), {
     fountainData,
     authorUid: user.uid,
-    authorEmail: user.email,
     status: 'pending',
     createdAt: serverTimestamp(),
   })
 }
 
-export async function getUserSubmissions(uid) {
+export async function getUserSubmissions(uid: string): Promise<Submission[]> {
   const database = requireDb()
   const q = query(
     collection(database, 'submissions'),
@@ -83,25 +97,34 @@ export async function getUserSubmissions(uid) {
     orderBy('createdAt', 'desc'),
   )
   const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Submission)
 }
 
 // ---- Reviews ---------------------------------------------------------------
 
-export async function addReview(fountainId, { rating, comment }, user) {
+export async function addReview(
+  fountainId: string,
+  { rating, comment }: { rating: number; comment: string },
+  user: AppUser,
+): Promise<DocumentReference> {
   const database = requireDb()
+  // Store a public display name only — never the author's email (privacy:
+  // reviews are publicly readable). Cap comment length to match firestore.rules.
   return addDoc(collection(database, 'reviews'), {
     fountainId,
     authorUid: user.uid,
-    authorName: user.displayName || user.email,
+    authorName: user.displayName || 'Anonymous',
     rating,
-    comment,
+    comment: (comment ?? '').slice(0, MAX_COMMENT_LENGTH),
     upvotes: 0,
     createdAt: serverTimestamp(),
   })
 }
 
-export async function getReviewsForFountain(fountainId, max = 10) {
+export async function getReviewsForFountain(
+  fountainId: string,
+  max = 10,
+): Promise<Review[]> {
   const database = requireDb()
   const q = query(
     collection(database, 'reviews'),
@@ -110,22 +133,22 @@ export async function getReviewsForFountain(fountainId, max = 10) {
     limit(max),
   )
   const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Review)
 }
 
-export async function upvoteReview(reviewId) {
+export async function upvoteReview(reviewId: string): Promise<void> {
   const database = requireDb()
   await updateDoc(doc(database, 'reviews', reviewId), { upvotes: increment(1) })
 }
 
-export async function deleteReview(reviewId) {
+export async function deleteReview(reviewId: string): Promise<void> {
   const database = requireDb()
   await deleteDoc(doc(database, 'reviews', reviewId))
 }
 
 // ---- User profiles ---------------------------------------------------------
 
-export async function ensureUserProfile(user) {
+export async function ensureUserProfile(user: AppUser): Promise<void> {
   const database = requireDb()
   await setDoc(
     doc(database, 'users', user.uid),
