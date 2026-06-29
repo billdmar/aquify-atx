@@ -9,6 +9,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // An admin is any signed-in user with a doc at /admins/{their-uid}.
+    // This is the durable, server-side admin boundary (the client-side
+    // VITE_ADMIN_EMAILS allowlist is only a UX gate). Grant admin by creating
+    // the doc in the console; no rules redeploy and no emails in source.
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     // A review create must be well-formed: owned by the caller, 1–5 star
     // integer rating, non-empty comment ≤ 500 chars, and zero upvotes.
     function isValidReview() {
@@ -44,6 +53,13 @@ service cloud.firestore {
         .hasOnly(['upvotes']);
     }
 
+    // A moderation update only touches `status`, setting it to a terminal value.
+    function isModerationUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status'])
+        && request.resource.data.status in ['approved', 'rejected'];
+    }
+
     match /fountains/{fountainId} {
       allow read: if true;
       allow write: if false; // admin SDK only via seed script
@@ -52,7 +68,13 @@ service cloud.firestore {
     match /submissions/{submissionId} {
       allow read: if true;
       allow create: if isSignedIn() && isValidSubmission();
-      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.authorUid;
+      // Owner may edit/delete their own submission; an admin may flip the
+      // moderation status (approve/reject) and nothing else.
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.authorUid
+        || (isAdmin() && isModerationUpdate())
+      );
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.authorUid;
     }
 
     match /reviews/{reviewId} {
@@ -73,6 +95,13 @@ service cloud.firestore {
       match /favorites/{fountainId} {
         allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
+    }
+
+    // Admin grants. A user may read their own admin doc (to self-check);
+    // writes are console / Admin-SDK only — never grantable from the client.
+    match /admins/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if false;
     }
   }
 }
