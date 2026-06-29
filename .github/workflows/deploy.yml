@@ -17,6 +17,12 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+# The preview step comments the deploy URL on the PR, which needs write access
+# to pull requests; contents stays read-only.
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -61,6 +67,9 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Comment preview URL on PR
+        # A successful deploy shouldn't be marked failed just because the
+        # comment couldn't be posted (e.g. token scope on a fork).
+        continue-on-error: true
         if: steps.guard.outputs.enabled == 'true' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
