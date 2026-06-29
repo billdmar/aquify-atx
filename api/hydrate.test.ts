@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { parseGeminiResponse } from './hydrate'
+import { parseGeminiResponse } from './hydrate.js'
 
 describe('parseGeminiResponse — happy path', () => {
   it('parses clean JSON', () => {
