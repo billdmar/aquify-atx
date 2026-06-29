@@ -68,7 +68,17 @@ export default defineConfig({
         'src/main.tsx',
         'src/types.ts',
         'src/vite-env.d.ts',
+        // Leaflet-bound UI is exercised manually / in E2E, not jsdom units.
+        'src/components/Map/**',
       ],
+      // Gate set just below current coverage so regressions fail CI but the
+      // bar is honest. Raise as coverage grows.
+      thresholds: {
+        statements: 53,
+        branches: 45,
+        functions: 53,
+        lines: 53,
+      },
     },
   },
 })
