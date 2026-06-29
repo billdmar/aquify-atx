@@ -86,9 +86,16 @@ describe('FountainCard', () => {
     expect(screen.getByRole('button', { name: /leave a review/i })).toBeInTheDocument()
   })
 
-  it('does not render action buttons when no callbacks are provided', () => {
+  it('renders only the always-on Share button when no callbacks are provided', () => {
+    // Locate/review/save are callback-driven and stay hidden; Share needs no
+    // callback (it builds its own URL) so it is always present.
     render(<FountainCard fountain={baseFountain} />)
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /show on map/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /leave a review/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument()
+    const buttons = screen.getAllByRole('button')
+    expect(buttons).toHaveLength(1)
+    expect(buttons[0]).toHaveAttribute('aria-label', 'Share')
   })
 
   it('action controls are real <button> elements', () => {
@@ -140,6 +147,11 @@ describe('FountainCard', () => {
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=30.3072,-97.7559',
     )
+  })
+
+  it('renders a Share button in the secondary action row', () => {
+    render(<FountainCard fountain={baseFountain} />)
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
   })
 
   it('does not render the save toggle without onToggleSave', () => {

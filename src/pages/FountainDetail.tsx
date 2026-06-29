@@ -16,6 +16,7 @@ import {
 import { typeLabel, typeBadgeClass, statusClass } from '../lib/fountainTypes'
 import ReviewList from '../components/ReviewList/ReviewList'
 import ReviewModal from '../components/ReviewModal/ReviewModal'
+import ShareButton from '../components/ShareButton/ShareButton'
 import type { Fountain, Review } from '../types'
 
 function directionsUrl(f: Fountain): string {
@@ -171,6 +172,11 @@ export default function FountainDetail() {
             {saved ? '♥ Saved' : '♡ Save'}
           </button>
         )}
+        <ShareButton
+          title={fountain.name}
+          url={`${window.location.origin}/fountain/${fountain.id}`}
+          label="Share"
+        />
         {currentUser && (
           <button
             type="button"
