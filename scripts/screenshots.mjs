@@ -102,6 +102,22 @@ async function main() {
     await sleep(600)
     await page.screenshot({ path: resolve(outDir, 'about.png') })
 
+    // Insights page — the data-viz breakdown (charts).
+    await page.goto(`${BASE}/insights`, { waitUntil: 'networkidle' })
+    await page.getByText(/Fountain Insights/i).first().waitFor({ timeout: 8000 }).catch(() => {})
+    await sleep(800)
+    await page.screenshot({ path: resolve(outDir, 'insights.png') })
+
+    // Dark mode — toggle the theme on the map view and capture the dark map.
+    await page.goto(BASE, { waitUntil: 'networkidle' })
+    await page.waitForSelector('.leaflet-container', { timeout: 15000 })
+    const themeBtn = page.locator('nav button[title*="mode"]')
+    if (await themeBtn.count()) {
+      await themeBtn.first().click()
+      await sleep(2500) // let tiles repaint + theme apply
+      await page.screenshot({ path: resolve(outDir, 'dark-map.png') })
+    }
+
     await desktop.close()
 
     // ---- Mobile capture (iPhone 12-ish) ----
