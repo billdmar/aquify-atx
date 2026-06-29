@@ -13,6 +13,7 @@ interface FountainListProps {
   onLocate?: (f: Fountain) => void
   favoriteIds?: Set<string> | string[]
   onToggleSave?: (f: Fountain) => void
+  stats?: Record<string, { avg: number; count: number }>
 }
 
 type AnnotatedFountain = Fountain & { distanceMiles: number | null }
@@ -24,6 +25,7 @@ export default function FountainList({
   onLocate,
   favoriteIds,
   onToggleSave,
+  stats,
 }: FountainListProps) {
   // Normalize favorites to a Set for O(1) lookup; undefined → no save UI.
   const favoriteSet =
@@ -73,6 +75,7 @@ export default function FountainList({
           onLocate={onLocate}
           saved={favoriteSet ? favoriteSet.has(fountain.id) : undefined}
           onToggleSave={onToggleSave}
+          stats={stats?.[fountain.id]}
         />
       ))}
     </div>

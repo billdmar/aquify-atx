@@ -166,6 +166,33 @@ export async function getReviewsForFountain(
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Review)
 }
 
+/**
+ * Aggregate review stats (average rating + count) per fountainId across all
+ * reviews. Used to show a compact rating summary on cards and map popups
+ * without fetching each fountain's reviews individually. In demo mode (no
+ * Firebase) there is no backend, so this resolves to an empty map.
+ */
+export async function getReviewStats(): Promise<
+  Record<string, { avg: number; count: number }>
+> {
+  if (!isFirebaseConfigured || !db) return {}
+  const snap = await getDocs(collection(db, 'reviews'))
+  const totals: Record<string, { sum: number; count: number }> = {}
+  for (const d of snap.docs) {
+    const { fountainId, rating } = d.data() as Review
+    if (!fountainId) continue
+    const entry = totals[fountainId] ?? { sum: 0, count: 0 }
+    entry.sum += Number(rating) || 0
+    entry.count += 1
+    totals[fountainId] = entry
+  }
+  const stats: Record<string, { avg: number; count: number }> = {}
+  for (const [fountainId, { sum, count }] of Object.entries(totals)) {
+    stats[fountainId] = { avg: sum / count, count }
+  }
+  return stats
+}
+
 export async function upvoteReview(reviewId: string): Promise<void> {
   const database = requireDb()
   await updateDoc(doc(database, 'reviews', reviewId), { upvotes: increment(1) })

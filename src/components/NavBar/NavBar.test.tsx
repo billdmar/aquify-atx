@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import type { User } from 'firebase/auth'
@@ -122,5 +122,53 @@ describe('NavBar', () => {
     expect(
       screen.getByRole('button', { name: /theme|dark|light/i }),
     ).toBeInTheDocument()
+  })
+
+  describe('mobile menu', () => {
+    beforeEach(() => {
+      vi.mocked(useAuth).mockReturnValue({
+        currentUser: null,
+        loading: false,
+        firebaseReady: false,
+        signOut: vi.fn(),
+      })
+    })
+
+    it('the hamburger toggle starts collapsed (aria-expanded=false, no panel)', () => {
+      renderNavBar()
+      const toggle = screen.getByRole('button', { name: /toggle navigation menu/i })
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      expect(toggle).toHaveAttribute('aria-controls', 'mobile-nav')
+      expect(document.getElementById('mobile-nav')).toBeNull()
+    })
+
+    it('toggling the hamburger flips aria-expanded and reveals the panel', () => {
+      renderNavBar()
+      const toggle = screen.getByRole('button', { name: /toggle navigation menu/i })
+
+      fireEvent.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+      const panel = document.getElementById('mobile-nav')
+      expect(panel).not.toBeNull()
+      expect(panel).toHaveAttribute('id', 'mobile-nav')
+
+      fireEvent.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      expect(document.getElementById('mobile-nav')).toBeNull()
+    })
+
+    it('closes the panel when a link inside it is clicked', () => {
+      renderNavBar()
+      const toggle = screen.getByRole('button', { name: /toggle navigation menu/i })
+      fireEvent.click(toggle)
+
+      const panel = document.getElementById('mobile-nav')
+      expect(panel).not.toBeNull()
+      const aboutLink = within(panel!).getByRole('link', { name: 'About' })
+      fireEvent.click(aboutLink)
+
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      expect(document.getElementById('mobile-nav')).toBeNull()
+    })
   })
 })

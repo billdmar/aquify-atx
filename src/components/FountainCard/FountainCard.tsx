@@ -3,6 +3,7 @@
 import type { Fountain } from '../../types'
 import { typeLabel, typeBadgeClass, statusClass, statusDot } from '../../lib/fountainTypes'
 import ShareButton from '../ShareButton/ShareButton'
+import { RatingSummary } from '../ReviewList/ratingDisplay'
 
 /** Universal cross-platform directions link (Google/Apple Maps on iOS). */
 function directionsUrl(fountain: Fountain): string {
@@ -16,6 +17,7 @@ interface FountainCardProps {
   onLocate?: (f: Fountain) => void
   saved?: boolean
   onToggleSave?: (f: Fountain) => void
+  stats?: { avg: number; count: number }
 }
 
 export default function FountainCard({
@@ -25,6 +27,7 @@ export default function FountainCard({
   onLocate,
   saved = false,
   onToggleSave,
+  stats,
 }: FountainCardProps) {
   const typeBadge = typeBadgeClass(fountain.type)
   const typeText = typeLabel(fountain.type)
@@ -47,6 +50,11 @@ export default function FountainCard({
 
       {/* Address */}
       <p className="text-xs text-gray-500 dark:text-slate-400 leading-snug">{fountain.address}</p>
+
+      {/* Rating summary */}
+      {stats && stats.count > 0 && (
+        <RatingSummary rating={stats.avg} count={stats.count} />
+      )}
 
       {/* Badges row */}
       <div className="flex flex-wrap items-center gap-2">

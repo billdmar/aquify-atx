@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useFountains } from '../context/FountainContext'
 import { getUserSubmissions } from '../lib/firestore'
 import { subscribeToFavorites, removeFavorite } from '../lib/favorites'
+import { Skeleton } from '../components/Skeleton/Skeleton'
 import type { Fountain, Submission } from '../types'
 
 /** Narrow a Firestore-style timestamp (`{ toDate(): Date }`) from `unknown`. */
@@ -175,7 +176,10 @@ export default function Profile() {
           )}
 
           {firebaseReady && submissionsLoading && (
-            <p className="text-sm text-slate-500 dark:text-slate-400">Loading submissions…</p>
+            <div role="status" aria-label="Loading submissions" className="space-y-3">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
           )}
 
           {firebaseReady && !submissionsLoading && submissionsError && (
