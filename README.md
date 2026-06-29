@@ -3,6 +3,7 @@
 > Find every public water fountain in Austin — and get a personalized hydration recommendation powered by live Central Texas weather. **Live now.**
 
 [![CI](https://github.com/billdmar/aquify-atx/actions/workflows/ci.yml/badge.svg)](https://github.com/billdmar/aquify-atx/actions/workflows/ci.yml)
+[![Deploy](https://github.com/billdmar/aquify-atx/actions/workflows/deploy.yml/badge.svg)](https://github.com/billdmar/aquify-atx/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white&style=for-the-badge)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white&style=for-the-badge)](https://www.typescriptlang.org)
