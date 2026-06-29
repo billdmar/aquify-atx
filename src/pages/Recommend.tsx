@@ -9,6 +9,7 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useFountains } from '../context/FountainContext'
 import ShareButton from '../components/ShareButton/ShareButton'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { getHydrationRecommendation } from '../recommend/hydroEngine'
 import { getAiHydration } from '../recommend/aiHydrate'
 import type {
@@ -155,6 +156,7 @@ function AiTipSkeleton() {
 // ---------------------------------------------------------------------------
 
 export default function Recommend() {
+  useDocumentTitle('Hydration')
   const { fountains, loading: fountainsLoading } = useFountains()
 
   const [willExercise, setWillExercise] = useState(false)
