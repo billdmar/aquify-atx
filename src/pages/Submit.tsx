@@ -7,6 +7,7 @@ import { submitFountain } from '../lib/firestore'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast/toastContext'
 import { AUSTIN_CENTER } from '../lib/geo'
+import { useForm } from '../hooks/useForm'
 import type { FountainType } from '../types'
 
 const TYPES: { value: FountainType; label: string }[] = [
@@ -29,18 +30,72 @@ export default function Submit() {
   const { currentUser, firebaseReady } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
-  const [form, setForm] = useState<SubmitForm>({
-    name: '',
-    address: '',
-    lat: '',
-    lng: '',
-    type: 'fountain',
-    accessible: false,
-    notes: '',
-  })
-  const [error, setError] = useState('')
-  const [pending, setPending] = useState(false)
   const [done, setDone] = useState(false)
+
+  // Validation messages and submit failures share a single alert slot, as
+  // before. Validation lives under a synthetic `form` key; a thrown submit
+  // error lands in `submitError`. We render whichever is present.
+  const { values, errors, pending, submitError, setField, handleSubmit } =
+    useForm<SubmitForm>({
+      initialValues: {
+        name: '',
+        address: '',
+        lat: '',
+        lng: '',
+        type: 'fountain',
+        accessible: false,
+        notes: '',
+      },
+      validate: (v) => {
+        const lat = Number(v.lat)
+        const lng = Number(v.lng)
+        if (!v.name.trim() || !v.address.trim()) {
+          return { name: 'Name and address are required.' }
+        }
+        if (Number.isNaN(lat) || lat < -90 || lat > 90) {
+          return { lat: 'Latitude must be a number between -90 and 90.' }
+        }
+        if (Number.isNaN(lng) || lng < -180 || lng > 180) {
+          return { lng: 'Longitude must be a number between -180 and 180.' }
+        }
+        // The route is auth-gated, but guard for TS narrowing (and belt-and-braces).
+        if (!currentUser) {
+          return { name: 'Please sign in to submit a fountain.' }
+        }
+        return {}
+      },
+      onSubmit: async (v) => {
+        // Narrowed by validate(), but TS can't see across the boundary.
+        if (!currentUser) return
+        try {
+          await submitFountain(
+            {
+              name: v.name.trim(),
+              address: v.address.trim(),
+              lat: Number(v.lat),
+              lng: Number(v.lng),
+              type: v.type,
+              status: 'unverified',
+              accessible: v.accessible,
+              notes: v.notes.trim(),
+            },
+            currentUser,
+          )
+        } catch (err) {
+          throw new Error(
+            err instanceof Error ? err.message : 'Could not submit fountain.',
+            { cause: err },
+          )
+        }
+        setDone(true)
+        toast('Submitted for review', { type: 'success' })
+        setTimeout(() => navigate('/'), 1500)
+      },
+    })
+  const form = values
+
+  // First validation message (any field) or a submit failure.
+  const error = Object.values(errors)[0] ?? submitError
 
   const update =
     (field: keyof SubmitForm) =>
@@ -54,58 +109,8 @@ export default function Submit() {
         target instanceof HTMLInputElement && target.type === 'checkbox'
           ? target.checked
           : target.value
-      setForm((prev) => ({ ...prev, [field]: value }))
+      setField(field, value as SubmitForm[typeof field])
     }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    const lat = Number(form.lat)
-    const lng = Number(form.lng)
-    if (!form.name.trim() || !form.address.trim()) {
-      setError('Name and address are required.')
-      return
-    }
-    if (Number.isNaN(lat) || lat < -90 || lat > 90) {
-      setError('Latitude must be a number between -90 and 90.')
-      return
-    }
-    if (Number.isNaN(lng) || lng < -180 || lng > 180) {
-      setError('Longitude must be a number between -180 and 180.')
-      return
-    }
-
-    // The route is auth-gated, but guard for TS narrowing (and belt-and-braces).
-    if (!currentUser) {
-      setError('Please sign in to submit a fountain.')
-      return
-    }
-
-    setPending(true)
-    try {
-      await submitFountain(
-        {
-          name: form.name.trim(),
-          address: form.address.trim(),
-          lat,
-          lng,
-          type: form.type,
-          status: 'unverified',
-          accessible: form.accessible,
-          notes: form.notes.trim(),
-        },
-        currentUser,
-      )
-      setDone(true)
-      toast('Submitted for review', { type: 'success' })
-      setTimeout(() => navigate('/'), 1500)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not submit fountain.')
-    } finally {
-      setPending(false)
-    }
-  }
 
   if (done) {
     return (
