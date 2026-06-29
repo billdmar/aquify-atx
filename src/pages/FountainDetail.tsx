@@ -19,6 +19,7 @@ import ReviewModal from '../components/ReviewModal/ReviewModal'
 import ShareButton from '../components/ShareButton/ShareButton'
 import { Skeleton } from '../components/Skeleton/Skeleton'
 import { useToast } from '../components/Toast/toastContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import type { Fountain, Review } from '../types'
 
 function directionsUrl(f: Fountain): string {
@@ -32,6 +33,7 @@ export default function FountainDetail() {
   const { toast } = useToast()
 
   const fountain = fountains.find((f) => f.id === id)
+  useDocumentTitle(fountain?.name)
 
   const [reviews, setReviews] = useState<Review[]>([])
   // Start in the loading state only when there's a backend to load from.
