@@ -193,6 +193,8 @@ export default function AquifyMap({
       zoom={zoom}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom
+      keyboard
+      aria-label="Map of Austin water fountains"
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -228,6 +230,8 @@ export default function AquifyMap({
         <Marker
           position={[userLocation.lat, userLocation.lng]}
           icon={ICONS.user}
+          alt="Your location"
+          keyboard
         >
           <Popup>
             <span className="font-semibold">Your location</span>

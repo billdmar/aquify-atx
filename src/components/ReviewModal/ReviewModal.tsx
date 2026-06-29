@@ -28,11 +28,19 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
 
   const dialogRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  // The element that had focus when the modal opened, so focus can be
+  // restored to it on close (WCAG 2.4.3 — don't strand keyboard/SR users).
+  const triggerRef = useRef<HTMLElement | null>(null)
 
-  // Focus the dialog on open
+  // Capture the triggering element, then focus the dialog on open. Restore
+  // focus to the trigger on unmount/close.
   useEffect(() => {
     if (fountain && dialogRef.current) {
+      triggerRef.current = document.activeElement as HTMLElement | null
       dialogRef.current.focus()
+    }
+    return () => {
+      triggerRef.current?.focus()
     }
   }, [fountain])
 
