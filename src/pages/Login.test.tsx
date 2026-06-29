@@ -27,7 +27,12 @@ function renderLogin() {
 describe('Login', () => {
   beforeEach(() => {
     // Firebase NOT configured — demo mode
-    useAuth.mockReturnValue({ firebaseReady: false })
+    vi.mocked(useAuth).mockReturnValue({
+      currentUser: null,
+      loading: false,
+      firebaseReady: false,
+      signOut: vi.fn(),
+    })
   })
 
   it('renders the email input', () => {
@@ -59,7 +64,12 @@ describe('Login', () => {
   })
 
   it('does NOT show the demo-mode banner when firebaseReady is true', () => {
-    useAuth.mockReturnValue({ firebaseReady: true })
+    vi.mocked(useAuth).mockReturnValue({
+      currentUser: null,
+      loading: false,
+      firebaseReady: true,
+      signOut: vi.fn(),
+    })
     renderLogin()
     // No role="status" element
     expect(screen.queryByRole('status')).not.toBeInTheDocument()

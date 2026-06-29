@@ -1,44 +1,22 @@
-// FountainCard.jsx — Presentational card for a single fountain listing.
+// FountainCard.tsx — Presentational card for a single fountain listing.
 
-const TYPE_LABELS = {
-  fountain: 'Drinking Fountain',
-  'bottle-filler': 'Bottle Filler',
-  both: 'Fountain + Bottle Filler',
-}
-
-const TYPE_BADGE_CLASSES = {
-  fountain: 'bg-blue-100 text-blue-700',
-  'bottle-filler': 'bg-green-100 text-green-700',
-  both: 'bg-purple-100 text-purple-700',
-}
-
-const STATUS_CLASSES = {
-  active: 'bg-green-100 text-green-700',
-  unverified: 'bg-amber-100 text-amber-700',
-  inactive: 'bg-gray-100 text-gray-500',
-}
-
-const STATUS_DOTS = {
-  active: 'bg-green-500',
-  unverified: 'bg-amber-500',
-  inactive: 'bg-gray-400',
-}
+import type { Fountain } from '../../types'
+import { typeLabel, typeBadgeClass, statusClass, statusDot } from '../../lib/fountainTypes'
 
 /** Universal cross-platform directions link (Google/Apple Maps on iOS). */
-function directionsUrl(fountain) {
+function directionsUrl(fountain: Fountain): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${fountain.lat},${fountain.lng}`
 }
 
-/**
- * @param {{
- *   fountain: object,
- *   distanceMiles?: number,
- *   onReview?: (fountain: object) => void,
- *   onLocate?: (fountain: object) => void,
- *   saved?: boolean,
- *   onToggleSave?: (fountain: object) => void,
- * }} props
- */
+interface FountainCardProps {
+  fountain: Fountain
+  distanceMiles?: number
+  onReview?: (f: Fountain) => void
+  onLocate?: (f: Fountain) => void
+  saved?: boolean
+  onToggleSave?: (f: Fountain) => void
+}
+
 export default function FountainCard({
   fountain,
   distanceMiles,
@@ -46,11 +24,11 @@ export default function FountainCard({
   onLocate,
   saved = false,
   onToggleSave,
-}) {
-  const typeBadge = TYPE_BADGE_CLASSES[fountain.type] ?? 'bg-gray-100 text-gray-600'
-  const typeLabel = TYPE_LABELS[fountain.type] ?? fountain.type
-  const statusClass = STATUS_CLASSES[fountain.status] ?? STATUS_CLASSES.inactive
-  const statusDot = STATUS_DOTS[fountain.status] ?? STATUS_DOTS.inactive
+}: FountainCardProps) {
+  const typeBadge = typeBadgeClass(fountain.type)
+  const typeText = typeLabel(fountain.type)
+  const statusPill = statusClass(fountain.status)
+  const statusDotClass = statusDot(fountain.status)
 
   return (
     <article className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2 hover:shadow-md transition-shadow">
@@ -73,12 +51,12 @@ export default function FountainCard({
       <div className="flex flex-wrap items-center gap-2">
         {/* Type badge */}
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadge}`}>
-          {typeLabel}
+          {typeText}
         </span>
 
         {/* Status pill */}
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} aria-hidden="true" />
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusPill}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${statusDotClass}`} aria-hidden="true" />
           {fountain.status}
         </span>
 

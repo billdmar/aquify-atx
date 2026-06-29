@@ -1,19 +1,22 @@
-// FountainList.jsx — Responsive grid of FountainCard components.
+// FountainList.tsx — Responsive grid of FountainCard components.
 // Sorts by distance when userLocation is known, else alphabetically by name.
 
+import { useMemo } from 'react'
 import FountainCard from '../FountainCard/FountainCard'
 import { haversineDistance } from '../../lib/geo'
+import type { Fountain, LatLng } from '../../types'
 
-/**
- * @param {{
- *   fountains: Array,
- *   userLocation: {lat:number,lng:number}|null,
- *   onReview?: (fountain: object) => void,
- *   onLocate?: (fountain: object) => void,
- *   favoriteIds?: Set<string>|Array<string>,
- *   onToggleSave?: (fountain: object) => void,
- * }} props
- */
+interface FountainListProps {
+  fountains?: Fountain[]
+  userLocation?: LatLng | null
+  onReview?: (f: Fountain) => void
+  onLocate?: (f: Fountain) => void
+  favoriteIds?: Set<string> | string[]
+  onToggleSave?: (f: Fountain) => void
+}
+
+type AnnotatedFountain = Fountain & { distanceMiles: number | null }
+
 export default function FountainList({
   fountains = [],
   userLocation = null,
@@ -21,7 +24,7 @@ export default function FountainList({
   onLocate,
   favoriteIds,
   onToggleSave,
-}) {
+}: FountainListProps) {
   // Normalize favorites to a Set for O(1) lookup; undefined → no save UI.
   const favoriteSet =
     favoriteIds instanceof Set
@@ -29,21 +32,25 @@ export default function FountainList({
       : Array.isArray(favoriteIds)
         ? new Set(favoriteIds)
         : null
-  // Annotate with distance when location is available
-  const annotated = fountains.map((f) => ({
-    ...f,
-    distanceMiles: userLocation
-      ? haversineDistance(userLocation.lat, userLocation.lng, f.lat, f.lng)
-      : null,
-  }))
 
-  // Sort: by distance ascending when known, else alphabetically
-  const sorted = [...annotated].sort((a, b) => {
-    if (a.distanceMiles != null && b.distanceMiles != null) {
-      return a.distanceMiles - b.distanceMiles
-    }
-    return a.name.localeCompare(b.name)
-  })
+  // Annotate with distance when location is available, then sort: by distance
+  // ascending when known, else alphabetically. Memoized so we only recompute
+  // when the inputs change.
+  const sorted = useMemo<AnnotatedFountain[]>(() => {
+    const annotated: AnnotatedFountain[] = fountains.map((f) => ({
+      ...f,
+      distanceMiles: userLocation
+        ? haversineDistance(userLocation.lat, userLocation.lng, f.lat, f.lng)
+        : null,
+    }))
+
+    return [...annotated].sort((a, b) => {
+      if (a.distanceMiles != null && b.distanceMiles != null) {
+        return a.distanceMiles - b.distanceMiles
+      }
+      return a.name.localeCompare(b.name)
+    })
+  }, [fountains, userLocation])
 
   if (sorted.length === 0) {
     return (
@@ -61,7 +68,7 @@ export default function FountainList({
         <FountainCard
           key={fountain.id}
           fountain={fountain}
-          distanceMiles={fountain.distanceMiles}
+          distanceMiles={fountain.distanceMiles ?? undefined}
           onReview={onReview}
           onLocate={onLocate}
           saved={favoriteSet ? favoriteSet.has(fountain.id) : undefined}

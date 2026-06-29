@@ -10,12 +10,25 @@ import { Link } from 'react-router-dom'
 import { useFountains } from '../context/FountainContext'
 import { getHydrationRecommendation } from '../recommend/hydroEngine'
 import { getAiHydration } from '../recommend/aiHydrate'
+import type {
+  HydrationRecommendation,
+  HydrationFactor,
+  FountainWithDistance,
+  Weather,
+} from '../types'
+import type { AiHydration } from '../recommend/aiHydrate'
 
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function WeatherStrip({ weather, usedFallback }) {
+function WeatherStrip({
+  weather,
+  usedFallback,
+}: {
+  weather: Weather
+  usedFallback: boolean
+}) {
   return (
     <div className="rounded-xl border border-aqua-200 bg-aqua-50 p-4">
       <div className="mb-2 flex items-center justify-between">
@@ -50,7 +63,7 @@ function WeatherStrip({ weather, usedFallback }) {
   )
 }
 
-function FactorList({ factors }) {
+function FactorList({ factors }: { factors: HydrationFactor[] }) {
   if (factors.length === 0) return null
   return (
     <ul className="mt-3 space-y-1">
@@ -66,7 +79,7 @@ function FactorList({ factors }) {
   )
 }
 
-function FountainCard({ fountain }) {
+function FountainCard({ fountain }: { fountain: FountainWithDistance }) {
   const distText =
     typeof fountain.distanceMiles === 'number'
       ? `${fountain.distanceMiles.toFixed(2)} mi away`
@@ -102,7 +115,7 @@ function AiBadge() {
   )
 }
 
-function AiTipCard({ ai }) {
+function AiTipCard({ ai }: { ai: AiHydration }) {
   return (
     <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5 shadow-sm ring-1 ring-violet-100">
       <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -144,15 +157,15 @@ export default function Recommend() {
   const { fountains, loading: fountainsLoading } = useFountains()
 
   const [willExercise, setWillExercise] = useState(false)
-  const [result, setResult] = useState(null)
-  const [ai, setAi] = useState(null)
+  const [result, setResult] = useState<HydrationRecommendation | null>(null)
+  const [ai, setAi] = useState<AiHydration | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [locationDenied, setLocationDenied] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   const runRecommendation = useCallback(
-    async (lat, lng) => {
+    async (lat: number | null, lng: number | null) => {
       setLoading(true)
       setError(null)
       setAi(null)
@@ -205,7 +218,7 @@ export default function Recommend() {
     )
   }
 
-  const handleExerciseChange = (e) => {
+  const handleExerciseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWillExercise(e.target.checked)
     // If a result already exists, refresh it immediately with the new flag.
     if (result) {

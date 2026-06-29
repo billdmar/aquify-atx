@@ -86,6 +86,7 @@ const NOT_CONFIGURED_RE = /not configured/i
 describe('submitFountain (demo mode — throws)', () => {
   it('rejects with a "not configured" error', async () => {
     await expect(
+      // @ts-expect-error — partial fountain data is fine: demo mode rejects before validating the payload
       submitFountain({ name: 'Test' }, { uid: 'u1', email: 'a@b.com' })
     ).rejects.toThrow(NOT_CONFIGURED_RE)
   })

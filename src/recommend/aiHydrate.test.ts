@@ -15,8 +15,11 @@ const PAYLOAD = {
 }
 
 /** Mock fetch resolving with a given JSON body and ok flag. */
-function okFetch(body, { ok = true } = {}) {
-  return vi.fn().mockResolvedValue({ ok, json: vi.fn().mockResolvedValue(body) })
+function okFetch(body: unknown, { ok = true } = {}): typeof fetch {
+  return vi.fn().mockResolvedValue({
+    ok,
+    json: vi.fn().mockResolvedValue(body),
+  }) as unknown as typeof fetch
 }
 
 describe('getAiHydration — success', () => {
@@ -38,7 +41,8 @@ describe('getAiHydration — success', () => {
 
   it('defaults source to gemini when omitted', async () => {
     const out = await getAiHydration(PAYLOAD, okFetch({ ok: true, cups: 10, tip: 'Drink.' }))
-    expect(out.source).toBe('gemini')
+    expect(out).not.toBeNull()
+    expect(out!.source).toBe('gemini')
   })
 })
 
