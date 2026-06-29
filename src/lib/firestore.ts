@@ -23,7 +23,7 @@ import {
   type Firestore,
   type DocumentReference,
 } from 'firebase/firestore'
-import { db, isFirebaseConfigured } from './firebase'
+import { getDbInstance, isFirebaseConfigured } from './firebase'
 import localFountainsData from '../data/fountains.json'
 import type { AppUser, Fountain, Review, Submission } from '../types'
 
@@ -36,6 +36,7 @@ const NOT_CONFIGURED =
 export const MAX_COMMENT_LENGTH = 500
 
 function requireDb(): Firestore {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) throw new Error(NOT_CONFIGURED)
   return db
 }
@@ -59,6 +60,7 @@ export function subscribeToFountains(
   onData: (fountains: Fountain[]) => void,
   onError?: (err: Error) => void,
 ): () => void {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) {
     onData(localFountains)
     return () => {}
@@ -105,6 +107,7 @@ export async function getUserSubmissions(uid: string): Promise<Submission[]> {
  * Firebase) there is no backend, so this resolves to an empty queue.
  */
 export async function getPendingSubmissions(): Promise<Submission[]> {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) return []
   const q = query(
     collection(db, 'submissions'),
@@ -175,6 +178,7 @@ export async function getReviewsForFountain(
 export async function getReviewStats(): Promise<
   Record<string, { avg: number; count: number }>
 > {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) return {}
   const snap = await getDocs(collection(db, 'reviews'))
   const totals: Record<string, { sum: number; count: number }> = {}

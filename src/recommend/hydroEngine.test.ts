@@ -13,8 +13,15 @@ import {
   scoreHydration,
   fetchAustinWeather,
   getHydrationRecommendation,
+  __clearWeatherCache,
 } from './hydroEngine'
 import { makeFountain } from '../test/fixtures'
+
+// The weather fetch is cached for 60s at module scope. Clear it before every
+// test so cases that inject different mock responses stay independent.
+beforeEach(() => {
+  __clearWeatherCache()
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -335,6 +342,30 @@ describe('fetchAustinWeather — malformed response', () => {
     const { weather: w, usedFallback } = await fetchAustinWeather(broken)
     expect(w).toEqual(FALLBACK_WEATHER)
     expect(usedFallback).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// fetchAustinWeather — caching
+// ---------------------------------------------------------------------------
+
+describe('fetchAustinWeather — caching within the TTL window', () => {
+  it('does NOT call fetchImpl again on a second call within the window', async () => {
+    const fetchImpl = mockFetch(makeMeteoResponse())
+    const first = await fetchAustinWeather(fetchImpl)
+    const second = await fetchAustinWeather(fetchImpl)
+
+    // Only the first call hit the network; the second reused the cache.
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+    expect(second).toEqual(first)
+  })
+
+  it('fetches again after the cache is cleared', async () => {
+    const fetchImpl = mockFetch(makeMeteoResponse())
+    await fetchAustinWeather(fetchImpl)
+    __clearWeatherCache()
+    await fetchAustinWeather(fetchImpl)
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
   })
 })
 

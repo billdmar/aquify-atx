@@ -95,13 +95,45 @@ export function scoreHydration(
 // Weather fetch (injectable for tests)
 // ---------------------------------------------------------------------------
 
+type WeatherResult = { weather: Weather; usedFallback: boolean }
+
+/** Time window (ms) during which a fetched weather result is reused. */
+const WEATHER_CACHE_TTL_MS = 60_000
+
+// Module-level cache: weather changes slowly, so back-to-back recommendations
+// (e.g. toggling "exercise" and re-running) reuse one fetch within the window
+// instead of hammering Open-Meteo. Keyed only on time.
+let weatherCache: { value: WeatherResult; at: number } | null = null
+
+/**
+ * Reset the weather cache. Test helper — lets each test start from a clean
+ * slate so cached results don't leak across cases.
+ */
+export function __clearWeatherCache(): void {
+  weatherCache = null
+}
+
 /**
  * Fetch current Austin weather from Open-Meteo.
  * On any failure returns FALLBACK_WEATHER with usedFallback:true.
+ *
+ * Results are cached for WEATHER_CACHE_TTL_MS; a call within that window
+ * returns the cached result without invoking `fetchImpl`.
  */
 export async function fetchAustinWeather(
   fetchImpl: typeof fetch = fetch,
-): Promise<{ weather: Weather; usedFallback: boolean }> {
+): Promise<WeatherResult> {
+  if (weatherCache && Date.now() - weatherCache.at < WEATHER_CACHE_TTL_MS) {
+    return weatherCache.value
+  }
+  const result = await fetchAustinWeatherUncached(fetchImpl)
+  weatherCache = { value: result, at: Date.now() }
+  return result
+}
+
+async function fetchAustinWeatherUncached(
+  fetchImpl: typeof fetch,
+): Promise<WeatherResult> {
   try {
     const res = await fetchImpl(OPEN_METEO_URL)
     if (!res.ok) {
