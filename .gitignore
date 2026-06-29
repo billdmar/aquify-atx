@@ -44,3 +44,10 @@ dev-dist
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Playwright E2E artifacts
+playwright-report
+test-results
+
+# Bundle analyzer output (npm run analyze)
+stats.html
