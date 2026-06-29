@@ -14,6 +14,7 @@ import {
   removeFavorite,
 } from '../lib/favorites'
 import { useGeolocation } from '../hooks/useGeolocation'
+import { createFountainSearch, searchFountains } from '../lib/search'
 import FilterBar from '../components/FilterBar/FilterBar'
 import FountainList from '../components/FountainList/FountainList'
 import ReviewModal from '../components/ReviewModal/ReviewModal'
@@ -98,19 +99,20 @@ export default function Home() {
     setSearchParams({ focus: fountain.id })
   }
 
+  // Rebuild the fuzzy index only when the underlying dataset changes — not on
+  // every keystroke (the term is applied separately below).
+  const fuse = useMemo(() => createFountainSearch(fountains), [fountains])
+
   const filtered = useMemo(() => {
     const typeSet =
       filters.types instanceof Set ? filters.types : new Set(filters.types)
-    const term = filters.search.trim().toLowerCase()
 
-    return fountains.filter((f) => {
+    // Exact-match pre-filters (type / status / accessibility / radius) are
+    // unchanged; only the text step is now fuzzy.
+    const preFiltered = fountains.filter((f) => {
       if (typeSet.size && !typeSet.has(f.type)) return false
       if (filters.activeOnly && f.status !== 'active') return false
       if (filters.accessibleOnly && !f.accessible) return false
-      if (term) {
-        const haystack = `${f.name} ${f.address}`.toLowerCase()
-        if (!haystack.includes(term)) return false
-      }
       if (
         filters.radiusMiles != null &&
         userLocation &&
@@ -121,7 +123,16 @@ export default function Home() {
       }
       return true
     })
-  }, [fountains, filters, userLocation])
+
+    // No (blank) search term → keep the dataset's existing order.
+    const ranked = searchFountains(fuse, filters.search)
+    if (ranked == null) return preFiltered
+
+    // Intersect the fuzzy matches with the pre-filtered set, preserving Fuse's
+    // relevance rank order for the text-matched results.
+    const allowed = new Set(preFiltered.map((f) => f.id))
+    return ranked.filter((f) => allowed.has(f.id))
+  }, [fountains, fuse, filters, userLocation])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
