@@ -16,12 +16,13 @@ import {
   type Auth,
   type User,
 } from 'firebase/auth'
-import { auth, isFirebaseConfigured } from './firebase'
+import { getAuthInstance, isFirebaseConfigured } from './firebase'
 
 const NOT_CONFIGURED =
   'Firebase is not configured. Add your credentials to .env to enable accounts.'
 
 function requireAuth(): Auth {
+  const auth = getAuthInstance()
   if (!isFirebaseConfigured || !auth) {
     throw new Error(NOT_CONFIGURED)
   }
@@ -107,6 +108,7 @@ export async function signOut(): Promise<void> {
 export function subscribeToAuth(
   callback: (user: User | null) => void,
 ): () => void {
+  const auth = getAuthInstance()
   if (!isFirebaseConfigured || !auth) {
     callback(null)
     return () => {}

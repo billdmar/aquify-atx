@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../Toast/toastContext'
 import { addReview } from '../../lib/firestore'
+import { useForm } from '../../hooks/useForm'
 import type { Fountain } from '../../types'
 
 const MAX_COMMENT = 500
@@ -11,22 +12,49 @@ interface ReviewModalProps {
   onClose: () => void
 }
 
-interface ReviewErrors {
-  rating?: string
-  comment?: string
+interface ReviewValues {
+  rating: number
+  comment: string
 }
 
 export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   const { currentUser } = useAuth()
   const { toast } = useToast()
 
-  const [rating, setRating] = useState(0)
+  // `hovered` (preview star) and `success` live outside the form: they're UI
+  // affordances, not submitted values. The rating/comment/errors/pending/
+  // submitError and the submit pipeline are owned by useForm.
   const [hovered, setHovered] = useState(0)
-  const [comment, setComment] = useState('')
-  const [errors, setErrors] = useState<ReviewErrors>({})
-  const [submitError, setSubmitError] = useState('')
-  const [pending, setPending] = useState(false)
   const [success, setSuccess] = useState(false)
+
+  const { values, errors, pending, submitError, setField, handleSubmit, reset } =
+    useForm<ReviewValues>({
+      initialValues: { rating: 0, comment: '' },
+      validate: ({ rating, comment }) => {
+        const e: Partial<Record<keyof ReviewValues, string>> = {}
+        if (!rating) e.rating = 'Please select a star rating.'
+        if (!comment.trim()) e.comment = 'Comment is required.'
+        return e
+      },
+      onSubmit: async ({ rating, comment }) => {
+        if (!fountain || !currentUser) return
+        try {
+          await addReview(fountain.id, { rating, comment: comment.trim() }, currentUser)
+        } catch (err) {
+          throw new Error(
+            (err instanceof Error ? err.message : '') ||
+              'Could not submit review. Please try again.',
+            { cause: err },
+          )
+        }
+        setSuccess(true)
+        toast('Review submitted', { type: 'success' })
+        setTimeout(() => {
+          handleClose()
+        }, 1500)
+      },
+    })
+  const { rating, comment } = values
 
   const dialogRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -47,15 +75,11 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   }, [fountain])
 
   const handleClose = useCallback(() => {
-    setRating(0)
+    reset()
     setHovered(0)
-    setComment('')
-    setErrors({})
-    setSubmitError('')
-    setPending(false)
     setSuccess(false)
     onClose()
-  }, [onClose])
+  }, [onClose, reset])
 
   // Escape key handler
   useEffect(() => {
@@ -101,41 +125,6 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   }, [fountain, success])
 
   if (!fountain) return null
-
-  function validate(): ReviewErrors {
-    const e: ReviewErrors = {}
-    if (!rating) e.rating = 'Please select a star rating.'
-    if (!comment.trim()) e.comment = 'Comment is required.'
-    return e
-  }
-
-  async function handleSubmit(ev: React.FormEvent) {
-    ev.preventDefault()
-    if (!fountain || !currentUser) return
-    setSubmitError('')
-    const e = validate()
-    if (Object.keys(e).length) {
-      setErrors(e)
-      return
-    }
-    setErrors({})
-    setPending(true)
-    try {
-      await addReview(fountain.id, { rating, comment: comment.trim() }, currentUser)
-      setSuccess(true)
-      toast('Review submitted', { type: 'success' })
-      setTimeout(() => {
-        handleClose()
-      }, 1500)
-    } catch (err) {
-      setSubmitError(
-        (err instanceof Error ? err.message : '') ||
-          'Could not submit review. Please try again.',
-      )
-    } finally {
-      setPending(false)
-    }
-  }
 
   const displayRating = hovered || rating
 
@@ -225,7 +214,7 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
                       aria-label={`${star} star${star !== 1 ? 's' : ''}`}
                       aria-pressed={rating === star}
                       onMouseEnter={() => setHovered(star)}
-                      onClick={() => setRating(star)}
+                      onClick={() => setField('rating', star)}
                       className="focus:outline-none focus:ring-2 focus:ring-aqua-500 rounded"
                     >
                       <svg
@@ -264,7 +253,7 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
                   maxLength={MAX_COMMENT}
                   value={comment}
                   onChange={(ev: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setComment(ev.target.value)
+                    setField('comment', ev.target.value)
                   }
                   aria-describedby="review-comment-desc review-comment-counter"
                   aria-invalid={!!errors.comment}

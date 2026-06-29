@@ -17,7 +17,7 @@ import {
   serverTimestamp,
   onSnapshot,
 } from 'firebase/firestore'
-import { db, isFirebaseConfigured } from './firebase'
+import { getDbInstance, isFirebaseConfigured } from './firebase'
 import type { AppUser } from '../types'
 
 const NOT_CONFIGURED =
@@ -63,6 +63,7 @@ export async function saveFavorite(
   fountainId: string,
   user?: AppUser | null,
 ): Promise<void> {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) {
     const ids = readDemoFavorites()
     if (!ids.includes(fountainId)) ids.push(fountainId)
@@ -86,6 +87,7 @@ export async function removeFavorite(
   fountainId: string,
   user?: AppUser | null,
 ): Promise<void> {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) {
     writeDemoFavorites(readDemoFavorites().filter((id) => id !== fountainId))
     return
@@ -102,6 +104,7 @@ export async function removeFavorite(
  * @returns {Promise<string[]>} favorite fountain ids
  */
 export async function getFavorites(uid?: string): Promise<string[]> {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) {
     return readDemoFavorites()
   }
@@ -125,6 +128,7 @@ export function subscribeToFavorites(
   onData: (ids: string[]) => void,
   onError?: (err: Error) => void,
 ): () => void {
+  const db = getDbInstance()
   if (!isFirebaseConfigured || !db) {
     onData(readDemoFavorites())
     return () => {}

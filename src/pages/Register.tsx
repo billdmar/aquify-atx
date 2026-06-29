@@ -1,71 +1,61 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerWithEmail, mapAuthError } from '../lib/auth'
 import { ensureUserProfile } from '../lib/firestore'
 import { useAuth } from '../context/AuthContext'
+import { useForm } from '../hooks/useForm'
 
-type RegisterErrors = {
-  displayName?: string
-  email?: string
-  password?: string
-  confirmPassword?: string
+interface RegisterValues {
+  displayName: string
+  email: string
+  password: string
+  confirmPassword: string
 }
 
 export default function Register() {
   const { firebaseReady } = useAuth()
   const navigate = useNavigate()
 
-  const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [errors, setErrors] = useState<RegisterErrors>({})
-  const [submitError, setSubmitError] = useState('')
-  const [pending, setPending] = useState(false)
-
-  function validate() {
-    const e: RegisterErrors = {}
-    if (!displayName.trim()) {
-      e.displayName = 'Display name is required.'
-    }
-    if (!email.trim()) {
-      e.email = 'Email is required.'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      e.email = 'Enter a valid email address.'
-    }
-    if (!password) {
-      e.password = 'Password is required.'
-    } else if (password.length < 6) {
-      e.password = 'Password must be at least 6 characters.'
-    }
-    if (!confirmPassword) {
-      e.confirmPassword = 'Please confirm your password.'
-    } else if (password !== confirmPassword) {
-      e.confirmPassword = 'Passwords do not match.'
-    }
-    return e
-  }
-
-  async function handleSubmit(ev: React.FormEvent) {
-    ev.preventDefault()
-    setSubmitError('')
-    const e = validate()
-    if (Object.keys(e).length) {
-      setErrors(e)
-      return
-    }
-    setErrors({})
-    setPending(true)
-    try {
-      const user = await registerWithEmail(email.trim(), password, displayName.trim())
-      await ensureUserProfile(user)
-      navigate('/')
-    } catch (err) {
-      setSubmitError(mapAuthError(err))
-    } finally {
-      setPending(false)
-    }
-  }
+  const { values, errors, pending, submitError, setField, handleSubmit } =
+    useForm<RegisterValues>({
+      initialValues: {
+        displayName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+      },
+      validate: ({ displayName, email, password, confirmPassword }) => {
+        const e: Partial<Record<keyof RegisterValues, string>> = {}
+        if (!displayName.trim()) {
+          e.displayName = 'Display name is required.'
+        }
+        if (!email.trim()) {
+          e.email = 'Email is required.'
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+          e.email = 'Enter a valid email address.'
+        }
+        if (!password) {
+          e.password = 'Password is required.'
+        } else if (password.length < 6) {
+          e.password = 'Password must be at least 6 characters.'
+        }
+        if (!confirmPassword) {
+          e.confirmPassword = 'Please confirm your password.'
+        } else if (password !== confirmPassword) {
+          e.confirmPassword = 'Passwords do not match.'
+        }
+        return e
+      },
+      onSubmit: async ({ displayName, email, password }) => {
+        try {
+          const user = await registerWithEmail(email.trim(), password, displayName.trim())
+          await ensureUserProfile(user)
+        } catch (err) {
+          throw new Error(mapAuthError(err), { cause: err })
+        }
+        navigate('/')
+      },
+    })
+  const { displayName, email, password, confirmPassword } = values
 
   return (
     <div className="min-h-screen bg-aqua-50 dark:bg-slate-900 flex items-center justify-center px-4">
@@ -117,7 +107,7 @@ export default function Register() {
               type="text"
               autoComplete="name"
               value={displayName}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setDisplayName(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setField('displayName', ev.target.value)}
               aria-describedby={errors.displayName ? 'reg-displayname-error' : undefined}
               aria-invalid={!!errors.displayName}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
@@ -141,7 +131,7 @@ export default function Register() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setEmail(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setField('email', ev.target.value)}
               aria-describedby={errors.email ? 'reg-email-error' : undefined}
               aria-invalid={!!errors.email}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
@@ -165,7 +155,7 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               value={password}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setPassword(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setField('password', ev.target.value)}
               aria-describedby={errors.password ? 'reg-password-error' : undefined}
               aria-invalid={!!errors.password}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
@@ -189,7 +179,7 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               value={confirmPassword}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setField('confirmPassword', ev.target.value)}
               aria-describedby={errors.confirmPassword ? 'reg-confirm-password-error' : undefined}
               aria-invalid={!!errors.confirmPassword}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${

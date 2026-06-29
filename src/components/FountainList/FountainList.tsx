@@ -1,7 +1,7 @@
 // FountainList.tsx — Responsive grid of FountainCard components.
 // Sorts by distance when userLocation is known, else alphabetically by name.
 
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import FountainCard from '../FountainCard/FountainCard'
 import { haversineDistance } from '../../lib/geo'
 import type { Fountain, LatLng } from '../../types'
@@ -18,7 +18,7 @@ interface FountainListProps {
 
 type AnnotatedFountain = Fountain & { distanceMiles: number | null }
 
-export default function FountainList({
+function FountainList({
   fountains = [],
   userLocation = null,
   onReview,
@@ -81,3 +81,8 @@ export default function FountainList({
     </div>
   )
 }
+
+// Memoized: re-renders only when its props change. The list is rendered on
+// pages that re-render for unrelated state (filters, theme), so skipping the
+// sort/annotate work when fountains/location/handlers are unchanged is a win.
+export default memo(FountainList)
