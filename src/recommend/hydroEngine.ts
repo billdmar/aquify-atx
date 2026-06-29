@@ -17,15 +17,22 @@
  */
 
 import { nearest } from '../lib/geo'
+import type {
+  Fountain,
+  HydrationRecommendation,
+  HydrationScore,
+  LatLng,
+  Weather,
+} from '../types'
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-export const AUSTIN_LATLNG = { lat: 30.2672, lng: -97.7431 }
+export const AUSTIN_LATLNG: LatLng = { lat: 30.2672, lng: -97.7431 }
 
 /** Documented Austin warm-season averages used when live weather is unavailable. */
-export const FALLBACK_WEATHER = {
+export const FALLBACK_WEATHER: Weather = {
   tempF: 95,
   heatIndexF: 99,
   uvIndex: 7,
@@ -45,14 +52,13 @@ export const OPEN_METEO_URL =
 
 /**
  * Compute a hydration recommendation from weather conditions.
- *
- * @param {{ tempF: number, heatIndexF: number, uvIndex: number, humidity: number }} weather
- * @param {boolean} willExercise
- * @returns {{ cups: number, liters: number, reason: string, factors: Array<{label: string, cups: number}> }}
  */
-export function scoreHydration(weather, willExercise) {
+export function scoreHydration(
+  weather: Weather,
+  willExercise: boolean,
+): HydrationScore {
   const { tempF, heatIndexF, uvIndex, humidity } = weather
-  const factors = []
+  const factors: HydrationScore['factors'] = []
 
   if (tempF > 90) {
     factors.push({ label: `high temperature (${Math.round(tempF)}°F)`, cups: 1 })
@@ -92,11 +98,10 @@ export function scoreHydration(weather, willExercise) {
 /**
  * Fetch current Austin weather from Open-Meteo.
  * On any failure returns FALLBACK_WEATHER with usedFallback:true.
- *
- * @param {typeof fetch} fetchImpl  — injectable fetch implementation
- * @returns {Promise<{ weather: object, usedFallback: boolean }>}
  */
-export async function fetchAustinWeather(fetchImpl = fetch) {
+export async function fetchAustinWeather(
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ weather: Weather; usedFallback: boolean }> {
   try {
     const res = await fetchImpl(OPEN_METEO_URL)
     if (!res.ok) {
@@ -131,33 +136,18 @@ export async function fetchAustinWeather(fetchImpl = fetch) {
 
 /**
  * Full recommendation: fetch weather → score → find nearest active fountains.
- *
- * @param {number|null} userLat
- * @param {number|null} userLng
- * @param {boolean} willExercise
- * @param {Array<object>} fountains  — full fountain list from FountainContext
- * @param {typeof fetch} fetchImpl
- * @returns {Promise<{
- *   cups: number,
- *   liters: number,
- *   reason: string,
- *   factors: Array<{label: string, cups: number}>,
- *   weather: object,
- *   usedFallback: boolean,
- *   nearestFountains: Array<object>
- * }>}
  */
 export async function getHydrationRecommendation(
-  userLat,
-  userLng,
-  willExercise,
-  fountains,
-  fetchImpl = fetch,
-) {
+  userLat: number | null,
+  userLng: number | null,
+  willExercise: boolean,
+  fountains: Fountain[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<HydrationRecommendation> {
   const { weather, usedFallback } = await fetchAustinWeather(fetchImpl)
   const { cups, liters, reason, factors } = scoreHydration(weather, willExercise)
 
-  let nearestFountains = []
+  let nearestFountains: HydrationRecommendation['nearestFountains'] = []
   if (userLat != null && userLng != null) {
     const active = (fountains || []).filter((f) => f.status === 'active')
     nearestFountains = nearest(userLat, userLng, active, 3)

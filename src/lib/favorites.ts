@@ -18,6 +18,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './firebase'
+import type { AppUser } from '../types'
 
 const NOT_CONFIGURED =
   'Firebase is not configured. Add your credentials to .env to enable this action.'
@@ -30,7 +31,7 @@ export const DEMO_FAVORITES_KEY = 'aquify:favorites'
 // ---- Demo-mode (localStorage) helpers --------------------------------------
 
 /** Read the demo favorites array from localStorage, tolerating bad data. */
-function readDemoFavorites() {
+function readDemoFavorites(): string[] {
   if (typeof localStorage === 'undefined') return []
   try {
     const raw = localStorage.getItem(DEMO_FAVORITES_KEY)
@@ -43,7 +44,7 @@ function readDemoFavorites() {
 }
 
 /** Persist the demo favorites array to localStorage. */
-function writeDemoFavorites(ids) {
+function writeDemoFavorites(ids: string[]): void {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(DEMO_FAVORITES_KEY, JSON.stringify([...new Set(ids)]))
 }
@@ -58,7 +59,10 @@ function writeDemoFavorites(ids) {
  * @param {string} fountainId
  * @param {{uid:string}|null} [user]
  */
-export async function saveFavorite(fountainId, user) {
+export async function saveFavorite(
+  fountainId: string,
+  user?: AppUser | null,
+): Promise<void> {
   if (!isFirebaseConfigured || !db) {
     const ids = readDemoFavorites()
     if (!ids.includes(fountainId)) ids.push(fountainId)
@@ -78,7 +82,10 @@ export async function saveFavorite(fountainId, user) {
  * @param {string} fountainId
  * @param {{uid:string}|null} [user]
  */
-export async function removeFavorite(fountainId, user) {
+export async function removeFavorite(
+  fountainId: string,
+  user?: AppUser | null,
+): Promise<void> {
   if (!isFirebaseConfigured || !db) {
     writeDemoFavorites(readDemoFavorites().filter((id) => id !== fountainId))
     return
@@ -94,7 +101,7 @@ export async function removeFavorite(fountainId, user) {
  * @param {string} [uid]
  * @returns {Promise<string[]>} favorite fountain ids
  */
-export async function getFavorites(uid) {
+export async function getFavorites(uid?: string): Promise<string[]> {
   if (!isFirebaseConfigured || !db) {
     return readDemoFavorites()
   }
@@ -113,7 +120,11 @@ export async function getFavorites(uid) {
  * @param {(err: Error) => void} [onError]
  * @returns {() => void} unsubscribe
  */
-export function subscribeToFavorites(uid, onData, onError) {
+export function subscribeToFavorites(
+  uid: string,
+  onData: (ids: string[]) => void,
+  onError?: (err: Error) => void,
+): () => void {
   if (!isFirebaseConfigured || !db) {
     onData(readDemoFavorites())
     return () => {}
@@ -137,7 +148,7 @@ export function subscribeToFavorites(uid, onData, onError) {
  * @param {string} fountainId
  * @param {string[]} favoriteIds
  */
-export function isFavorite(fountainId, favoriteIds) {
+export function isFavorite(fountainId: string, favoriteIds: string[]): boolean {
   return Array.isArray(favoriteIds) && favoriteIds.includes(fountainId)
 }
 
