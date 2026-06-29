@@ -190,7 +190,11 @@ export default function Home() {
             onChange={setFilters}
             locationKnown={Boolean(userLocation)}
           />
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-2 text-sm text-slate-500 dark:text-slate-400"
+          >
             Showing {filtered.length} of {fountains.length} fountains
           </p>
         </aside>
