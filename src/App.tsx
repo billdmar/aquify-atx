@@ -17,6 +17,7 @@ const Profile = lazy(() => import('./pages/Profile'))
 const Submit = lazy(() => import('./pages/Submit'))
 const Recommend = lazy(() => import('./pages/Recommend'))
 const About = lazy(() => import('./pages/About'))
+const Insights = lazy(() => import('./pages/Insights'))
 const FountainDetail = lazy(() => import('./pages/FountainDetail'))
 const Admin = lazy(() => import('./pages/Admin'))
 
@@ -52,6 +53,7 @@ function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/recommend" element={<Recommend />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/insights" element={<Insights />} />
                   <Route path="/fountain/:id" element={<FountainDetail />} />
                   <Route
                     path="/submit"

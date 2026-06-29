@@ -47,6 +47,9 @@ export default function NavBar() {
           <NavLink to="/submit" className={linkClass}>
             Add Fountain
           </NavLink>
+          <NavLink to="/insights" className={linkClass}>
+            Insights
+          </NavLink>
           <NavLink to="/about" className={linkClass}>
             About
           </NavLink>
