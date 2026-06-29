@@ -2,54 +2,46 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signInWithEmail, signInWithGoogle, mapAuthError } from '../lib/auth'
 import { useAuth } from '../context/AuthContext'
+import { useForm } from '../hooks/useForm'
 
-type LoginErrors = { email?: string; password?: string }
+interface LoginValues {
+  email: string
+  password: string
+}
 
 export default function Login() {
   const { firebaseReady } = useAuth()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState<LoginErrors>({})
-  const [submitError, setSubmitError] = useState('')
-  const [pending, setPending] = useState(false)
+  const { values, errors, pending, submitError, setField, handleSubmit, setSubmitError } =
+    useForm<LoginValues>({
+      initialValues: { email: '', password: '' },
+      validate: ({ email, password }) => {
+        const e: Partial<Record<keyof LoginValues, string>> = {}
+        if (!email.trim()) {
+          e.email = 'Email is required.'
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+          e.email = 'Enter a valid email address.'
+        }
+        if (!password) {
+          e.password = 'Password is required.'
+        } else if (password.length < 6) {
+          e.password = 'Password must be at least 6 characters.'
+        }
+        return e
+      },
+      onSubmit: async ({ email, password }) => {
+        try {
+          await signInWithEmail(email.trim(), password)
+        } catch (err) {
+          throw new Error(mapAuthError(err), { cause: err })
+        }
+        navigate('/')
+      },
+    })
+  const { email, password } = values
+
   const [googlePending, setGooglePending] = useState(false)
-
-  function validate() {
-    const e: LoginErrors = {}
-    if (!email.trim()) {
-      e.email = 'Email is required.'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      e.email = 'Enter a valid email address.'
-    }
-    if (!password) {
-      e.password = 'Password is required.'
-    } else if (password.length < 6) {
-      e.password = 'Password must be at least 6 characters.'
-    }
-    return e
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSubmitError('')
-    const e2 = validate()
-    if (Object.keys(e2).length) {
-      setErrors(e2)
-      return
-    }
-    setErrors({})
-    setPending(true)
-    try {
-      await signInWithEmail(email.trim(), password)
-      navigate('/')
-    } catch (err) {
-      setSubmitError(mapAuthError(err))
-    } finally {
-      setPending(false)
-    }
-  }
 
   async function handleGoogle() {
     setSubmitError('')
@@ -114,7 +106,7 @@ export default function Login() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setEmail(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setField('email', ev.target.value)}
               aria-describedby={errors.email ? 'login-email-error' : undefined}
               aria-invalid={!!errors.email}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
@@ -138,7 +130,7 @@ export default function Login() {
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setPassword(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setField('password', ev.target.value)}
               aria-describedby={errors.password ? 'login-password-error' : undefined}
               aria-invalid={!!errors.password}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
