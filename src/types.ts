@@ -102,3 +102,15 @@ export interface AppUser {
   email: string | null
   displayName: string | null
 }
+
+/** Filter state owned by Home and driven by FilterBar. */
+export interface FilterState {
+  search: string
+  types: Set<FountainType>
+  activeOnly: boolean
+  accessibleOnly: boolean
+  radiusMiles: number | null
+}
+
+/** Which results view Home is showing. */
+export type FountainView = 'map' | 'list'

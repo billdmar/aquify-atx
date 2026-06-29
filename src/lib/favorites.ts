@@ -121,7 +121,7 @@ export async function getFavorites(uid?: string): Promise<string[]> {
  * @returns {() => void} unsubscribe
  */
 export function subscribeToFavorites(
-  uid: string,
+  uid: string | undefined,
   onData: (ids: string[]) => void,
   onError?: (err: Error) => void,
 ): () => void {

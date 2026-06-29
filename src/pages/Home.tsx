@@ -13,16 +13,18 @@ import {
   saveFavorite,
   removeFavorite,
 } from '../lib/favorites'
+import { useGeolocation } from '../hooks/useGeolocation'
 import FilterBar from '../components/FilterBar/FilterBar'
 import FountainList from '../components/FountainList/FountainList'
 import ReviewModal from '../components/ReviewModal/ReviewModal'
+import type { Fountain, FilterState, FountainType, FountainView } from '../types'
 
 // Leaflet is heavy and not SSR-safe — load it lazily.
 const AquifyMap = lazy(() => import('../components/Map/AquifyMap'))
 
-const ALL_TYPES = ['fountain', 'bottle-filler', 'both']
+const ALL_TYPES: FountainType[] = ['fountain', 'bottle-filler', 'both']
 
-const initialFilters = {
+const initialFilters: FilterState = {
   search: '',
   types: new Set(ALL_TYPES),
   activeOnly: false,
@@ -33,18 +35,21 @@ const initialFilters = {
 export default function Home() {
   const { fountains, loading, error } = useFountains()
   const { currentUser } = useAuth()
-  const [filters, setFilters] = useState(initialFilters)
-  const [userLocation, setUserLocation] = useState(null)
-  // Surfaces geolocation status to the user. The "Near me" button otherwise
-  // fails silently when the browser lacks the API or the user denies access.
-  const [locating, setLocating] = useState(false)
-  const [locationNote, setLocationNote] = useState(null)
+  const [filters, setFilters] = useState<FilterState>(initialFilters)
+  // Geolocation ("Near me") — the hook surfaces a status note so the button
+  // never fails silently when the API is missing or permission is denied.
+  const {
+    location: userLocation,
+    locating,
+    note: locationNote,
+    request: requestLocation,
+  } = useGeolocation()
   // 'map' is the default; the user can switch to 'list'. Deriving the active
   // view from a single state value (rather than syncing in an effect) avoids a
   // setState-in-effect cascade. The ?focus=<id> param simply feeds the map.
-  const [view, setView] = useState('map') // 'map' | 'list'
-  const [reviewTarget, setReviewTarget] = useState(null)
-  const [favoriteIds, setFavoriteIds] = useState([])
+  const [view, setView] = useState<FountainView>('map')
+  const [reviewTarget, setReviewTarget] = useState<Fountain | null>(null)
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [searchParams, setSearchParams] = useSearchParams()
 
   // ?focus=<id> (e.g. from the hydration page) centers the map on a fountain.
@@ -67,7 +72,7 @@ export default function Home() {
     return unsubscribe
   }, [currentUser])
 
-  const handleToggleSave = async (fountain) => {
+  const handleToggleSave = async (fountain: Fountain) => {
     const isSaved = favoriteIds.includes(fountain.id)
     // Optimistic update; in demo mode the subscription is a one-shot read so
     // this also keeps the UI in sync without a refetch.
@@ -88,35 +93,9 @@ export default function Home() {
     }
   }
 
-  const handleLocate = (fountain) => {
+  const handleLocate = (fountain: Fountain) => {
     setView('map')
     setSearchParams({ focus: fountain.id })
-  }
-
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationNote('Location is not supported by this browser.')
-      return
-    }
-    setLocating(true)
-    setLocationNote(null)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        })
-        setLocating(false)
-      },
-      () => {
-        setUserLocation(null)
-        setLocating(false)
-        setLocationNote(
-          'Location access is off — enable it to sort and filter by distance.',
-        )
-      },
-      { timeout: 8000 },
-    )
   }
 
   const filtered = useMemo(() => {

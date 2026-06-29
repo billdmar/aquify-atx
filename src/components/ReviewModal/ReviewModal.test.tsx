@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { User } from 'firebase/auth'
+import type { Fountain } from '../../types'
 import ReviewModal from './ReviewModal'
+import { makeFountain } from '../../test/fixtures'
 
 // Mock AuthContext so tests can control currentUser without Firebase
 vi.mock('../../context/AuthContext', () => ({
@@ -14,15 +17,20 @@ vi.mock('../../lib/firestore', () => ({
 
 import { useAuth } from '../../context/AuthContext'
 
-const sampleFountain = {
+const sampleFountain = makeFountain({
   id: 'f1',
   name: 'Barton Springs Fountain',
-}
+})
 
 describe('ReviewModal', () => {
   beforeEach(() => {
     // Default: no current user (demo/logged-out mode)
-    useAuth.mockReturnValue({ currentUser: null })
+    vi.mocked(useAuth).mockReturnValue({
+      currentUser: null,
+      loading: false,
+      firebaseReady: true,
+      signOut: vi.fn(),
+    })
   })
 
   it('renders nothing when fountain is null', () => {
@@ -34,7 +42,7 @@ describe('ReviewModal', () => {
 
   it('renders nothing when fountain is undefined', () => {
     const { container } = render(
-      <ReviewModal fountain={undefined} onClose={vi.fn()} />,
+      <ReviewModal fountain={undefined as unknown as Fountain | null} onClose={vi.fn()} />,
     )
     expect(container).toBeEmptyDOMElement()
   })
@@ -73,7 +81,7 @@ describe('ReviewModal', () => {
     const onClose = vi.fn()
     render(<ReviewModal fountain={sampleFountain} onClose={onClose} />)
     // The backdrop is the outermost div; click it directly
-    const backdrop = screen.getByRole('dialog').parentElement
+    const backdrop = screen.getByRole('dialog').parentElement!
     fireEvent.click(backdrop)
     expect(onClose).toHaveBeenCalledOnce()
   })
@@ -94,8 +102,11 @@ describe('ReviewModal', () => {
 
   describe('logged-in path', () => {
     beforeEach(() => {
-      useAuth.mockReturnValue({
-        currentUser: { uid: 'user1', email: 'user@example.com' },
+      vi.mocked(useAuth).mockReturnValue({
+        currentUser: { uid: 'user1', email: 'user@example.com' } as User,
+        loading: false,
+        firebaseReady: true,
+        signOut: vi.fn(),
       })
     })
 

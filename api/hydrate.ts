@@ -23,7 +23,22 @@
  * never needs to 500 on the AI path.
  */
 
-/* global process */
+// This module runs only in Vercel's Node serverless runtime. Declare the bits
+// of the Node environment we use so the app's browser-targeted tsconfig (which
+// intentionally omits @types/node) still type-checks it.
+declare const process: { env: Record<string, string | undefined> }
+
+// Minimal structural types for the Vercel Node request/response, so this
+// function stays dependency-free (no @vercel/node import needed).
+interface VercelRequest {
+  method?: string
+  body?: unknown
+}
+interface VercelResponse {
+  setHeader: (name: string, value: string) => void
+  status: (code: number) => VercelResponse
+  json: (body: unknown) => VercelResponse
+}
 
 const GEMINI_MODEL = 'gemini-2.0-flash'
 const GEMINI_ENDPOINT =
@@ -44,7 +59,9 @@ const MAX_CUPS = 20
  * @param {string} text  — raw text returned by the model
  * @returns {{ cups: number, tip: string } | null}  null if unparseable/invalid
  */
-export function parseGeminiResponse(text) {
+export function parseGeminiResponse(
+  text: unknown,
+): { cups: number; tip: string } | null {
   if (typeof text !== 'string') return null
 
   // Strip Markdown code fences (```json … ``` or ``` … ```).
@@ -80,13 +97,11 @@ export function parseGeminiResponse(text) {
   }
 }
 
-/**
- * Build the prompt sent to Gemini from the request payload.
- * @param {object} body
- * @returns {string}
- */
-function buildPrompt(body) {
-  const w = body.weather || {}
+/** Build the prompt sent to Gemini from the request payload. */
+function buildPrompt(body: Record<string, unknown>): string {
+  const w = (
+    body.weather && typeof body.weather === 'object' ? body.weather : {}
+  ) as Record<string, unknown>
   const tempF = Number(w.tempF)
   const heatIndexF = Number(w.heatIndexF)
   const uvIndex = Number(w.uvIndex)
@@ -116,12 +131,11 @@ function buildPrompt(body) {
     .join('\n')
 }
 
-/**
- * Vercel serverless handler.
- * @param {import('http').IncomingMessage & { method: string, body: any }} req
- * @param {import('http').ServerResponse & { status: Function, json: Function }} res
- */
-export default async function handler(req, res) {
+/** Vercel serverless handler. */
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse,
+) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ ok: false, reason: 'method' })
@@ -134,7 +148,7 @@ export default async function handler(req, res) {
   }
 
   // Vercel parses JSON bodies automatically, but guard for string bodies too.
-  let body = req.body
+  let body: unknown = req.body
   if (typeof body === 'string') {
     try {
       body = JSON.parse(body)
@@ -144,7 +158,7 @@ export default async function handler(req, res) {
   }
   if (body == null || typeof body !== 'object') body = {}
 
-  const prompt = buildPrompt(body)
+  const prompt = buildPrompt(body as Record<string, unknown>)
 
   try {
     const geminiRes = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {

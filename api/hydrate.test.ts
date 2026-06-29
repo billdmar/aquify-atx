@@ -42,13 +42,15 @@ describe('parseGeminiResponse — happy path', () => {
 
   it('rounds cups to the nearest half cup', () => {
     const out = parseGeminiResponse('{"cups": 9.7, "tip": "Drink more."}')
-    expect(out.cups).toBe(9.5)
+    expect(out).not.toBeNull()
+    expect(out!.cups).toBe(9.5)
   })
 
   it('trims and caps an overly long tip', () => {
     const longTip = 'x'.repeat(500)
     const out = parseGeminiResponse(`{"cups": 8, "tip": "${longTip}"}`)
-    expect(out.tip.length).toBe(400)
+    expect(out).not.toBeNull()
+    expect(out!.tip.length).toBe(400)
   })
 })
 

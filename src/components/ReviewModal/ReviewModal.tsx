@@ -1,22 +1,33 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { addReview } from '../../lib/firestore'
+import type { Fountain } from '../../types'
 
 const MAX_COMMENT = 500
 
-export default function ReviewModal({ fountain, onClose }) {
+interface ReviewModalProps {
+  fountain: Fountain | null
+  onClose: () => void
+}
+
+interface ReviewErrors {
+  rating?: string
+  comment?: string
+}
+
+export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   const { currentUser } = useAuth()
 
   const [rating, setRating] = useState(0)
   const [hovered, setHovered] = useState(0)
   const [comment, setComment] = useState('')
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<ReviewErrors>({})
   const [submitError, setSubmitError] = useState('')
   const [pending, setPending] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  const dialogRef = useRef(null)
-  const closeButtonRef = useRef(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   // Focus the dialog on open
   useEffect(() => {
@@ -38,7 +49,7 @@ export default function ReviewModal({ fountain, onClose }) {
 
   // Escape key handler
   useEffect(() => {
-    function onKeyDown(ev) {
+    function onKeyDown(ev: KeyboardEvent) {
       if (ev.key === 'Escape') handleClose()
     }
     if (fountain) {
@@ -51,13 +62,13 @@ export default function ReviewModal({ fountain, onClose }) {
   useEffect(() => {
     if (!fountain || !dialogRef.current) return
     const dialog = dialogRef.current
-    const focusable = dialog.querySelectorAll(
+    const focusable = dialog.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     )
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
+    const first: HTMLElement = focusable[0]
+    const last: HTMLElement = focusable[focusable.length - 1]
 
-    function trap(ev) {
+    function trap(ev: KeyboardEvent) {
       if (ev.key !== 'Tab') return
       if (focusable.length === 0) {
         ev.preventDefault()
@@ -81,15 +92,16 @@ export default function ReviewModal({ fountain, onClose }) {
 
   if (!fountain) return null
 
-  function validate() {
-    const e = {}
+  function validate(): ReviewErrors {
+    const e: ReviewErrors = {}
     if (!rating) e.rating = 'Please select a star rating.'
     if (!comment.trim()) e.comment = 'Comment is required.'
     return e
   }
 
-  async function handleSubmit(ev) {
+  async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault()
+    if (!fountain || !currentUser) return
     setSubmitError('')
     const e = validate()
     if (Object.keys(e).length) {
@@ -105,7 +117,10 @@ export default function ReviewModal({ fountain, onClose }) {
         handleClose()
       }, 1500)
     } catch (err) {
-      setSubmitError(err.message || 'Could not submit review. Please try again.')
+      setSubmitError(
+        (err instanceof Error ? err.message : '') ||
+          'Could not submit review. Please try again.',
+      )
     } finally {
       setPending(false)
     }
@@ -237,7 +252,9 @@ export default function ReviewModal({ fountain, onClose }) {
                   rows={4}
                   maxLength={MAX_COMMENT}
                   value={comment}
-                  onChange={(ev) => setComment(ev.target.value)}
+                  onChange={(ev: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setComment(ev.target.value)
+                  }
                   aria-describedby="review-comment-desc review-comment-counter"
                   aria-invalid={!!errors.comment}
                   className={`w-full rounded-lg border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-aqua-500 ${

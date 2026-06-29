@@ -6,17 +6,28 @@ import { useNavigate } from 'react-router-dom'
 import { submitFountain } from '../lib/firestore'
 import { useAuth } from '../context/AuthContext'
 import { AUSTIN_CENTER } from '../lib/geo'
+import type { FountainType } from '../types'
 
-const TYPES = [
+const TYPES: { value: FountainType; label: string }[] = [
   { value: 'fountain', label: 'Drinking fountain' },
   { value: 'bottle-filler', label: 'Bottle filler' },
   { value: 'both', label: 'Both' },
 ]
 
+interface SubmitForm {
+  name: string
+  address: string
+  lat: string
+  lng: string
+  type: FountainType
+  accessible: boolean
+  notes: string
+}
+
 export default function Submit() {
   const { currentUser, firebaseReady } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<SubmitForm>({
     name: '',
     address: '',
     lat: '',
@@ -29,13 +40,22 @@ export default function Submit() {
   const [pending, setPending] = useState(false)
   const [done, setDone] = useState(false)
 
-  const update = (field) => (e) => {
-    const value =
-      e.target.type === 'checkbox' ? e.target.checked : e.target.value
-    setForm((prev) => ({ ...prev, [field]: value }))
-  }
+  const update =
+    (field: keyof SubmitForm) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => {
+      const target = e.target
+      const value =
+        target instanceof HTMLInputElement && target.type === 'checkbox'
+          ? target.checked
+          : target.value
+      setForm((prev) => ({ ...prev, [field]: value }))
+    }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -51,6 +71,12 @@ export default function Submit() {
     }
     if (Number.isNaN(lng) || lng < -180 || lng > 180) {
       setError('Longitude must be a number between -180 and 180.')
+      return
+    }
+
+    // The route is auth-gated, but guard for TS narrowing (and belt-and-braces).
+    if (!currentUser) {
+      setError('Please sign in to submit a fountain.')
       return
     }
 
@@ -72,7 +98,7 @@ export default function Submit() {
       setDone(true)
       setTimeout(() => navigate('/'), 1500)
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : 'Could not submit fountain.')
     } finally {
       setPending(false)
     }

@@ -7,13 +7,14 @@
  *   - getHydrationRecommendation: active-only filter, distance sort, null location
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import {
   FALLBACK_WEATHER,
   scoreHydration,
   fetchAustinWeather,
   getHydrationRecommendation,
 } from './hydroEngine'
+import { makeFountain } from '../test/fixtures'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,14 +39,14 @@ function makeMeteoResponse(fields = {}) {
 }
 
 /** Create a mock fetch that resolves with a JSON body. */
-function mockFetch(body, { ok = true, throws = false } = {}) {
+function mockFetch(body: unknown, { ok = true, throws = false } = {}): typeof fetch {
   if (throws) {
-    return vi.fn().mockRejectedValue(new Error('network error'))
+    return vi.fn().mockRejectedValue(new Error('network error')) as unknown as typeof fetch
   }
   return vi.fn().mockResolvedValue({
     ok,
     json: vi.fn().mockResolvedValue(body),
-  })
+  }) as unknown as typeof fetch
 }
 
 // ---------------------------------------------------------------------------
@@ -343,22 +344,22 @@ describe('fetchAustinWeather — malformed response', () => {
 
 const SAMPLE_FOUNTAINS = [
   // active, close (~0.3 mi north of Austin center)
-  { id: 'f-close', name: 'Close Fountain', lat: 30.2700, lng: -97.7431, status: 'active' },
+  makeFountain({ id: 'f-close', name: 'Close Fountain', lat: 30.2700, lng: -97.7431, status: 'active' }),
   // active, medium distance
-  { id: 'f-mid', name: 'Mid Fountain', lat: 30.2800, lng: -97.7431, status: 'active' },
+  makeFountain({ id: 'f-mid', name: 'Mid Fountain', lat: 30.2800, lng: -97.7431, status: 'active' }),
   // inactive — must be excluded
-  { id: 'f-inactive', name: 'Inactive Fountain', lat: 30.2672, lng: -97.7431, status: 'inactive' },
+  makeFountain({ id: 'f-inactive', name: 'Inactive Fountain', lat: 30.2672, lng: -97.7431, status: 'inactive' }),
   // unverified — must be excluded
-  { id: 'f-unverified', name: 'Unverified Fountain', lat: 30.2672, lng: -97.7431, status: 'unverified' },
+  makeFountain({ id: 'f-unverified', name: 'Unverified Fountain', lat: 30.2672, lng: -97.7431, status: 'unverified' }),
   // active, far
-  { id: 'f-far', name: 'Far Fountain', lat: 30.3100, lng: -97.7431, status: 'active' },
+  makeFountain({ id: 'f-far', name: 'Far Fountain', lat: 30.3100, lng: -97.7431, status: 'active' }),
 ]
 
 describe('getHydrationRecommendation — with location', () => {
   const mockF = mockFetch(makeMeteoResponse())
 
   beforeEach(() => {
-    mockF.mockClear()
+    ;(mockF as unknown as Mock).mockClear()
   })
 
   it('returns only active fountains (max 3)', async () => {
@@ -462,6 +463,7 @@ describe('getHydrationRecommendation — weather integration', () => {
 
   it('handles undefined fountains gracefully', async () => {
     const result = await getHydrationRecommendation(
+      // @ts-expect-error — deliberately passing undefined to verify the defensive `(fountains || [])` guard
       30.2672, -97.7431, false, undefined, mockFetch(makeMeteoResponse()),
     )
     expect(result.nearestFountains).toEqual([])

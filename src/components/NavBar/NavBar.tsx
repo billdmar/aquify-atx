@@ -5,7 +5,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 const linkBase = 'px-3 py-2 rounded-md text-sm font-medium transition-colors'
-const linkClass = ({ isActive }) =>
+const linkClass = ({ isActive }: { isActive: boolean }): string =>
   `${linkBase} ${
     isActive
       ? 'bg-aqua-700 text-white'
@@ -54,7 +54,7 @@ export default function NavBar() {
               <Link
                 to="/profile"
                 className="max-w-[12rem] truncate text-sm font-medium text-aqua-50 hover:underline"
-                title={currentUser.displayName || currentUser.email}
+                title={currentUser.displayName || currentUser.email || undefined}
               >
                 {currentUser.displayName || currentUser.email}
               </Link>

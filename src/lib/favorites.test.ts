@@ -23,7 +23,7 @@ describe('saveFavorite (demo mode)', () => {
   it('persists a fountain id to localStorage', async () => {
     await saveFavorite('f1')
     expect(await getFavorites()).toEqual(['f1'])
-    expect(JSON.parse(localStorage.getItem(DEMO_FAVORITES_KEY))).toEqual(['f1'])
+    expect(JSON.parse(localStorage.getItem(DEMO_FAVORITES_KEY) ?? '')).toEqual(['f1'])
   })
 
   it('does not duplicate an already-saved id', async () => {
@@ -161,6 +161,7 @@ describe('isFavorite', () => {
   })
 
   it('returns false for a non-array input', () => {
+    // @ts-expect-error — deliberately passing undefined to verify the Array.isArray guard
     expect(isFavorite('f1', undefined)).toBe(false)
   })
 })

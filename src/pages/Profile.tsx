@@ -4,30 +4,44 @@ import { useAuth } from '../context/AuthContext'
 import { useFountains } from '../context/FountainContext'
 import { getUserSubmissions } from '../lib/firestore'
 import { subscribeToFavorites, removeFavorite } from '../lib/favorites'
+import type { Fountain, Submission } from '../types'
+
+/** Narrow a Firestore-style timestamp (`{ toDate(): Date }`) from `unknown`. */
+function asTimestamp(value: unknown): { toDate: () => Date } | null {
+  return value &&
+    typeof value === 'object' &&
+    typeof (value as { toDate?: unknown }).toDate === 'function'
+    ? (value as { toDate: () => Date })
+    : null
+}
 
 export default function Profile() {
   const { currentUser, firebaseReady, signOut } = useAuth()
   const { fountains } = useFountains()
   const navigate = useNavigate()
 
-  const [submissions, setSubmissions] = useState([])
+  const [submissions, setSubmissions] = useState<Submission[]>([])
   const [submissionsLoading, setSubmissionsLoading] = useState(false)
   const [submissionsError, setSubmissionsError] = useState('')
-  const [favoriteIds, setFavoriteIds] = useState([])
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [signOutPending, setSignOutPending] = useState(false)
 
   useEffect(() => {
     if (!currentUser) return
+    const uid = currentUser.uid
     let cancelled = false
 
     async function fetchSubmissions() {
       setSubmissionsLoading(true)
       setSubmissionsError('')
       try {
-        const data = await getUserSubmissions(currentUser.uid)
+        const data = await getUserSubmissions(uid)
         if (!cancelled) setSubmissions(data)
       } catch (err) {
-        if (!cancelled) setSubmissionsError(err.message || 'Could not load submissions.')
+        if (!cancelled)
+          setSubmissionsError(
+            (err instanceof Error && err.message) || 'Could not load submissions.',
+          )
       } finally {
         if (!cancelled) setSubmissionsLoading(false)
       }
@@ -53,9 +67,9 @@ export default function Profile() {
 
   const savedFountains = favoriteIds
     .map((id) => fountains.find((f) => f.id === id))
-    .filter(Boolean)
+    .filter((f): f is Fountain => Boolean(f))
 
-  async function handleUnsave(fountainId) {
+  async function handleUnsave(fountainId: string) {
     setFavoriteIds((ids) => ids.filter((id) => id !== fountainId))
     try {
       await removeFavorite(fountainId, currentUser)
@@ -112,7 +126,7 @@ export default function Profile() {
             <div className="flex-shrink-0 w-14 h-14 rounded-full bg-aqua-600 flex items-center justify-center text-white text-xl font-bold">
               {currentUser.displayName
                 ? currentUser.displayName.charAt(0).toUpperCase()
-                : currentUser.email.charAt(0).toUpperCase()}
+                : currentUser.email!.charAt(0).toUpperCase()}
             </div>
             <div>
               <h1 className="text-xl font-bold text-aqua-900">
@@ -194,8 +208,8 @@ export default function Profile() {
                     >
                       {sub.status ?? 'pending'}
                     </span>
-                    {sub.createdAt?.toDate && (
-                      <span>{sub.createdAt.toDate().toLocaleDateString()}</span>
+                    {asTimestamp(sub.createdAt) && (
+                      <span>{asTimestamp(sub.createdAt)!.toDate().toLocaleDateString()}</span>
                     )}
                   </div>
                 </li>

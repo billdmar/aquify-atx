@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { signInWithEmail, signInWithGoogle } from '../lib/auth'
+import { signInWithEmail, signInWithGoogle, mapAuthError } from '../lib/auth'
 import { useAuth } from '../context/AuthContext'
+
+type LoginErrors = { email?: string; password?: string }
 
 export default function Login() {
   const { firebaseReady } = useAuth()
@@ -9,13 +11,13 @@ export default function Login() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<LoginErrors>({})
   const [submitError, setSubmitError] = useState('')
   const [pending, setPending] = useState(false)
   const [googlePending, setGooglePending] = useState(false)
 
   function validate() {
-    const e = {}
+    const e: LoginErrors = {}
     if (!email.trim()) {
       e.email = 'Email is required.'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -29,7 +31,7 @@ export default function Login() {
     return e
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitError('')
     const e2 = validate()
@@ -43,7 +45,7 @@ export default function Login() {
       await signInWithEmail(email.trim(), password)
       navigate('/')
     } catch (err) {
-      setSubmitError(err.message || 'Sign in failed. Please try again.')
+      setSubmitError(mapAuthError(err))
     } finally {
       setPending(false)
     }
@@ -56,7 +58,7 @@ export default function Login() {
       await signInWithGoogle()
       navigate('/')
     } catch (err) {
-      setSubmitError(err.message || 'Google sign in failed. Please try again.')
+      setSubmitError(mapAuthError(err))
     } finally {
       setGooglePending(false)
     }
@@ -112,7 +114,7 @@ export default function Login() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setEmail(ev.target.value)}
               aria-describedby={errors.email ? 'login-email-error' : undefined}
               aria-invalid={!!errors.email}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
@@ -136,7 +138,7 @@ export default function Login() {
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(ev) => setPassword(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setPassword(ev.target.value)}
               aria-describedby={errors.password ? 'login-password-error' : undefined}
               aria-invalid={!!errors.password}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${

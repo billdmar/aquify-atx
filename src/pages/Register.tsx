@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { registerWithEmail } from '../lib/auth'
+import { registerWithEmail, mapAuthError } from '../lib/auth'
 import { ensureUserProfile } from '../lib/firestore'
 import { useAuth } from '../context/AuthContext'
+
+type RegisterErrors = {
+  displayName?: string
+  email?: string
+  password?: string
+  confirmPassword?: string
+}
 
 export default function Register() {
   const { firebaseReady } = useAuth()
@@ -12,12 +19,12 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<RegisterErrors>({})
   const [submitError, setSubmitError] = useState('')
   const [pending, setPending] = useState(false)
 
   function validate() {
-    const e = {}
+    const e: RegisterErrors = {}
     if (!displayName.trim()) {
       e.displayName = 'Display name is required.'
     }
@@ -39,7 +46,7 @@ export default function Register() {
     return e
   }
 
-  async function handleSubmit(ev) {
+  async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault()
     setSubmitError('')
     const e = validate()
@@ -54,7 +61,7 @@ export default function Register() {
       await ensureUserProfile(user)
       navigate('/')
     } catch (err) {
-      setSubmitError(err.message || 'Registration failed. Please try again.')
+      setSubmitError(mapAuthError(err))
     } finally {
       setPending(false)
     }
@@ -110,7 +117,7 @@ export default function Register() {
               type="text"
               autoComplete="name"
               value={displayName}
-              onChange={(ev) => setDisplayName(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setDisplayName(ev.target.value)}
               aria-describedby={errors.displayName ? 'reg-displayname-error' : undefined}
               aria-invalid={!!errors.displayName}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
@@ -134,7 +141,7 @@ export default function Register() {
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setEmail(ev.target.value)}
               aria-describedby={errors.email ? 'reg-email-error' : undefined}
               aria-invalid={!!errors.email}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
@@ -158,7 +165,7 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               value={password}
-              onChange={(ev) => setPassword(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setPassword(ev.target.value)}
               aria-describedby={errors.password ? 'reg-password-error' : undefined}
               aria-invalid={!!errors.password}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
@@ -182,7 +189,7 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               value={confirmPassword}
-              onChange={(ev) => setConfirmPassword(ev.target.value)}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(ev.target.value)}
               aria-describedby={errors.confirmPassword ? 'reg-confirm-password-error' : undefined}
               aria-invalid={!!errors.confirmPassword}
               className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${

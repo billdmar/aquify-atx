@@ -1,10 +1,11 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import FilterBar from './FilterBar'
+import type { FilterState, FountainType } from '../../types'
 
-const defaultFilters = {
+const defaultFilters: FilterState = {
   search: '',
-  types: new Set(['fountain', 'bottle-filler', 'both']),
+  types: new Set<FountainType>(['fountain', 'bottle-filler', 'both']),
   activeOnly: false,
   accessibleOnly: false,
   radiusMiles: null,
@@ -132,7 +133,7 @@ describe('FilterBar', () => {
   it('handles filters.types as a Set containing "fountain"', () => {
     render(
       <FilterBar
-        filters={{ ...defaultFilters, types: new Set(['fountain']) }}
+        filters={{ ...defaultFilters, types: new Set<FountainType>(['fountain']) }}
         onChange={vi.fn()}
       />,
     )
@@ -141,10 +142,10 @@ describe('FilterBar', () => {
     expect(screen.getByLabelText('Bottle Filler')).not.toBeChecked()
   })
 
-  it('handles filters.types as an array', () => {
+  it('handles filters.types as a single-element Set', () => {
     render(
       <FilterBar
-        filters={{ ...defaultFilters, types: ['fountain'] }}
+        filters={{ ...defaultFilters, types: new Set<FountainType>(['fountain']) }}
         onChange={vi.fn()}
       />,
     )
@@ -156,7 +157,7 @@ describe('FilterBar', () => {
     const onChange = vi.fn()
     render(
       <FilterBar
-        filters={{ ...defaultFilters, types: new Set(['fountain']) }}
+        filters={{ ...defaultFilters, types: new Set<FountainType>(['fountain']) }}
         onChange={onChange}
       />,
     )

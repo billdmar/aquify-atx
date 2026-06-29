@@ -1,9 +1,10 @@
-// FilterBar.jsx — Controlled filter panel with debounced search.
+// FilterBar.tsx — Controlled filter panel with debounced search.
 // Collapses to an expandable panel on mobile.
 
 import { useState, useEffect, useRef } from 'react'
+import type { FilterState, FountainType } from '../../types'
 
-const TYPES = [
+const TYPES: { value: FountainType; label: string }[] = [
   { value: 'fountain', label: 'Drinking Fountain' },
   { value: 'bottle-filler', label: 'Bottle Filler' },
   { value: 'both', label: 'Fountain + Bottle Filler' },
@@ -11,26 +12,19 @@ const TYPES = [
 
 const RADIUS_OPTIONS = [0.5, 1, 2, 5]
 
-/**
- * @param {{
- *   filters: {
- *     search: string,
- *     types: Set|string[],
- *     activeOnly: boolean,
- *     accessibleOnly: boolean,
- *     radiusMiles: number|null,
- *   },
- *   onChange: (nextFilters: object) => void,
- *   locationKnown?: boolean,
- * }} props
- */
-export default function FilterBar({ filters, onChange, locationKnown = false }) {
+interface FilterBarProps {
+  filters: FilterState
+  onChange: (next: FilterState) => void
+  locationKnown?: boolean
+}
+
+export default function FilterBar({ filters, onChange, locationKnown = false }: FilterBarProps) {
   const [open, setOpen] = useState(false)
   // searchInput is the debounced local value for the text field.
   // It stays in sync with filters.search on initial render; "Clear all" resets
   // both the upstream state and the local state together via handleClearAll.
   const [searchInput, setSearchInput] = useState(filters.search ?? '')
-  const debounceRef = useRef(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Cleanup debounce timer on unmount only.
   useEffect(() => {
@@ -39,7 +33,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }) 
     }
   }, [])
 
-  function handleSearchChange(e) {
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
     setSearchInput(value)
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -48,7 +42,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }) 
     }, 300)
   }
 
-  function handleTypeToggle(typeValue) {
+  function handleTypeToggle(typeValue: FountainType) {
     const current = new Set(filters.types)
     if (current.has(typeValue)) {
       current.delete(typeValue)
@@ -58,11 +52,11 @@ export default function FilterBar({ filters, onChange, locationKnown = false }) 
     onChange({ ...filters, types: current })
   }
 
-  function handleToggle(field) {
+  function handleToggle(field: 'activeOnly' | 'accessibleOnly') {
     onChange({ ...filters, [field]: !filters[field] })
   }
 
-  function handleRadiusChange(e) {
+  function handleRadiusChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!locationKnown) return
     const idx = Number(e.target.value)
     onChange({ ...filters, radiusMiles: RADIUS_OPTIONS[idx] })

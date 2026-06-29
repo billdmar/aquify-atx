@@ -1,8 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import FountainCard from './FountainCard'
+import { makeFountain } from '../../test/fixtures'
 
-const baseFountain = {
+const baseFountain = makeFountain({
   id: 'f1',
   name: 'Barton Springs Fountain',
   address: '2201 Barton Springs Rd, Austin, TX 78746',
@@ -12,7 +13,7 @@ const baseFountain = {
   notes: '',
   lat: 30.2641,
   lng: -97.7713,
-}
+})
 
 describe('FountainCard', () => {
   it('renders the fountain name and address', () => {
@@ -121,11 +122,11 @@ describe('FountainCard', () => {
     // mis-encoding (e.g. encodeURIComponent turning "," into "%2C" inside dir/).
     render(<FountainCard fountain={baseFountain} />)
     const link = screen.getByRole('link', { name: /get directions/i })
-    const url = new URL(link.getAttribute('href'))
+    const url = new URL(link.getAttribute('href')!)
     expect(url.origin + url.pathname).toBe('https://www.google.com/maps/dir/')
     expect(url.searchParams.get('api')).toBe('1')
     expect(url.searchParams.get('destination')).toBe('30.2641,-97.7713')
-    const [lat, lng] = url.searchParams.get('destination').split(',').map(Number)
+    const [lat, lng] = url.searchParams.get('destination')!.split(',').map(Number)
     expect(lat).toBeCloseTo(30.2641)
     expect(lng).toBeCloseTo(-97.7713)
     expect(lng).toBeLessThan(0) // Austin is west of the prime meridian
