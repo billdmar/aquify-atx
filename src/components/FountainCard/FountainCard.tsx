@@ -2,6 +2,7 @@
 
 import type { Fountain } from '../../types'
 import { typeLabel, typeBadgeClass, statusClass, statusDot } from '../../lib/fountainTypes'
+import ShareButton from '../ShareButton/ShareButton'
 
 /** Universal cross-platform directions link (Google/Apple Maps on iOS). */
 function directionsUrl(fountain: Fountain): string {
@@ -111,6 +112,12 @@ export default function FountainCard({
           <span aria-hidden="true">🧭</span>
           <span>Get Directions</span>
         </a>
+        <ShareButton
+          title={fountain.name}
+          url={`${window.location.origin}/fountain/${fountain.id}`}
+          label="Share"
+          className="flex-1"
+        />
         {onToggleSave && (
           <button
             type="button"
