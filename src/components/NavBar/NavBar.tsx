@@ -3,6 +3,7 @@
 
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { isAdmin } from '../../lib/admin'
 import ThemeToggle from '../ThemeToggle/ThemeToggle'
 
 const linkBase = 'px-3 py-2 rounded-md text-sm font-medium transition-colors'
@@ -49,6 +50,11 @@ export default function NavBar() {
           <NavLink to="/about" className={linkClass}>
             About
           </NavLink>
+          {isAdmin(currentUser) && (
+            <NavLink to="/admin" className={linkClass}>
+              Admin
+            </NavLink>
+          )}
 
           <ThemeToggle />
 

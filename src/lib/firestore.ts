@@ -100,6 +100,36 @@ export async function getUserSubmissions(uid: string): Promise<Submission[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Submission)
 }
 
+/**
+ * All pending submissions awaiting moderation, oldest first. In demo mode (no
+ * Firebase) there is no backend, so this resolves to an empty queue.
+ */
+export async function getPendingSubmissions(): Promise<Submission[]> {
+  if (!isFirebaseConfigured || !db) return []
+  const q = query(
+    collection(db, 'submissions'),
+    where('status', '==', 'pending'),
+    orderBy('createdAt', 'asc'),
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Submission)
+}
+
+/**
+ * Approve or reject a submission. Throws the not-configured error in demo mode,
+ * like the other write helpers.
+ *
+ * NOTE: this is a privileged write — firestore.rules MUST restrict submission
+ * status updates to admins; the client-side allowlist is only a UX gate.
+ */
+export async function setSubmissionStatus(
+  id: string,
+  status: 'approved' | 'rejected',
+): Promise<void> {
+  const database = requireDb()
+  await updateDoc(doc(database, 'submissions', id), { status })
+}
+
 // ---- Reviews ---------------------------------------------------------------
 
 export async function addReview(
