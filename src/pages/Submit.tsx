@@ -108,10 +108,10 @@ export default function Submit() {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
         <div className="text-5xl">✅</div>
-        <h1 className="mt-4 text-2xl font-bold text-aqua-800">
+        <h1 className="mt-4 text-2xl font-bold text-aqua-800 dark:text-slate-100">
           Thanks for your submission!
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-slate-600 dark:text-slate-400">
           Your fountain has been submitted for review. Redirecting…
         </p>
       </div>
@@ -120,13 +120,13 @@ export default function Submit() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-aqua-800">Add a Fountain</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-2xl font-bold text-aqua-800 dark:text-slate-100">Add a Fountain</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Know a public fountain we&apos;re missing? Submit it for review.
       </p>
 
       {!firebaseReady && (
-        <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-4 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           Demo mode: configure Firebase in <code>.env</code> to save
           submissions.
         </div>
@@ -142,7 +142,7 @@ export default function Submit() {
             type="text"
             value={form.name}
             onChange={update('name')}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-900 dark:text-slate-100"
             required
           />
         </div>
@@ -156,7 +156,7 @@ export default function Submit() {
             type="text"
             value={form.address}
             onChange={update('address')}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-900 dark:text-slate-100"
             required
           />
         </div>
@@ -173,7 +173,7 @@ export default function Submit() {
               placeholder={String(AUSTIN_CENTER.lat)}
               value={form.lat}
               onChange={update('lat')}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+              className="mt-1 w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-900 dark:text-slate-100"
               required
             />
           </div>
@@ -188,7 +188,7 @@ export default function Submit() {
               placeholder={String(AUSTIN_CENTER.lng)}
               value={form.lng}
               onChange={update('lng')}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+              className="mt-1 w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-900 dark:text-slate-100"
               required
             />
           </div>
@@ -202,7 +202,7 @@ export default function Submit() {
             id="type"
             value={form.type}
             onChange={update('type')}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-900 dark:text-slate-100"
           >
             {TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -230,7 +230,7 @@ export default function Submit() {
             rows={3}
             value={form.notes}
             onChange={update('notes')}
-            className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+            className="mt-1 w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-900 dark:text-slate-100"
           />
         </div>
 

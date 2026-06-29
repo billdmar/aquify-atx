@@ -5,6 +5,7 @@
 
 import { memo, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import { useAuth } from '../../context/AuthContext'
 import { AUSTIN_CENTER } from '../../lib/geo'
@@ -59,6 +60,22 @@ const ICONS: Record<IconKind, L.DivIcon> = {
 function iconForFountain(fountain: Fountain): L.DivIcon {
   if (fountain.status === 'inactive') return ICONS.inactive
   return ICONS[fountain.type] ?? ICONS.inactive
+}
+
+/** Aqua-themed cluster bubble showing the number of fountains it contains. */
+function clusterIcon(cluster: { getChildCount: () => number }): L.DivIcon {
+  const count = cluster.getChildCount()
+  const size = count < 10 ? 36 : count < 50 ? 44 : 52
+  return L.divIcon({
+    html: `<div style="
+      display:flex;align-items:center;justify-content:center;
+      width:${size}px;height:${size}px;border-radius:50%;
+      background:#0084cc;color:#fff;font-weight:700;font-size:0.8rem;
+      border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    " aria-label="${count} fountains">${count}</div>`,
+    className: '',
+    iconSize: L.point(size, size, true),
+  })
 }
 
 /** Concise, screen-reader-friendly label for a marker. */
@@ -188,17 +205,24 @@ export default function AquifyMap({
         userLocation={userLocation}
       />
 
-      {fountains.map((fountain) => (
-        <FountainMarker
-          key={fountain.id}
-          fountain={fountain}
-          canReview={Boolean(currentUser)}
-          saved={favoriteIds.includes(fountain.id)}
-          onReview={onReview}
-          onToggleSave={onToggleSave}
-          canSave={canSave}
-        />
-      ))}
+      <MarkerClusterGroup
+        chunkedLoading
+        iconCreateFunction={clusterIcon}
+        showCoverageOnHover={false}
+        maxClusterRadius={50}
+      >
+        {fountains.map((fountain) => (
+          <FountainMarker
+            key={fountain.id}
+            fountain={fountain}
+            canReview={Boolean(currentUser)}
+            saved={favoriteIds.includes(fountain.id)}
+            onReview={onReview}
+            onToggleSave={onToggleSave}
+            canSave={canSave}
+          />
+        ))}
+      </MarkerClusterGroup>
 
       {userLocation && (
         <Marker

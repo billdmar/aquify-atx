@@ -30,33 +30,33 @@ function WeatherStrip({
   usedFallback: boolean
 }) {
   return (
-    <div className="rounded-xl border border-aqua-200 bg-aqua-50 p-4">
+    <div className="rounded-xl border border-aqua-200 dark:border-slate-700 bg-aqua-50 dark:bg-slate-800 p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-aqua-800 uppercase tracking-wide">
+        <h3 className="text-sm font-semibold text-aqua-800 dark:text-aqua-200 uppercase tracking-wide">
           Current Conditions
         </h3>
         {usedFallback && (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+          <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-200">
             Using fallback averages
           </span>
         )}
       </div>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         <div>
-          <dt className="text-xs text-aqua-600">Temperature</dt>
-          <dd className="text-lg font-bold text-aqua-900">{Math.round(weather.tempF)}°F</dd>
+          <dt className="text-xs text-aqua-600 dark:text-aqua-300">Temperature</dt>
+          <dd className="text-lg font-bold text-aqua-900 dark:text-slate-100">{Math.round(weather.tempF)}°F</dd>
         </div>
         <div>
-          <dt className="text-xs text-aqua-600">Heat Index</dt>
-          <dd className="text-lg font-bold text-aqua-900">{Math.round(weather.heatIndexF)}°F</dd>
+          <dt className="text-xs text-aqua-600 dark:text-aqua-300">Heat Index</dt>
+          <dd className="text-lg font-bold text-aqua-900 dark:text-slate-100">{Math.round(weather.heatIndexF)}°F</dd>
         </div>
         <div>
-          <dt className="text-xs text-aqua-600">UV Index</dt>
-          <dd className="text-lg font-bold text-aqua-900">{weather.uvIndex}</dd>
+          <dt className="text-xs text-aqua-600 dark:text-aqua-300">UV Index</dt>
+          <dd className="text-lg font-bold text-aqua-900 dark:text-slate-100">{weather.uvIndex}</dd>
         </div>
         <div>
-          <dt className="text-xs text-aqua-600">Humidity</dt>
-          <dd className="text-lg font-bold text-aqua-900">{weather.humidity}%</dd>
+          <dt className="text-xs text-aqua-600 dark:text-aqua-300">Humidity</dt>
+          <dd className="text-lg font-bold text-aqua-900 dark:text-slate-100">{weather.humidity}%</dd>
         </div>
       </dl>
     </div>
@@ -86,14 +86,14 @@ function FountainCard({ fountain }: { fountain: FountainWithDistance }) {
       : ''
 
   return (
-    <div className="flex items-start justify-between rounded-xl border border-aqua-200 bg-white p-4 shadow-sm">
+    <div className="flex items-start justify-between rounded-xl border border-aqua-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
       <div className="min-w-0">
-        <p className="truncate font-semibold text-aqua-900">{fountain.name}</p>
+        <p className="truncate font-semibold text-aqua-900 dark:text-slate-100">{fountain.name}</p>
         {fountain.address && (
-          <p className="mt-0.5 truncate text-xs text-aqua-600">{fountain.address}</p>
+          <p className="mt-0.5 truncate text-xs text-aqua-600 dark:text-aqua-300">{fountain.address}</p>
         )}
         {distText && (
-          <p className="mt-1 text-xs font-medium text-aqua-500">{distText}</p>
+          <p className="mt-1 text-xs font-medium text-aqua-500 dark:text-aqua-400">{distText}</p>
         )}
       </div>
       <Link
@@ -230,10 +230,10 @@ export default function Recommend() {
     <main className="mx-auto max-w-2xl px-4 py-10">
       {/* Header */}
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-aqua-900">
+        <h1 className="text-3xl font-extrabold tracking-tight text-aqua-900 dark:text-slate-100">
           Hydration Recommendation
         </h1>
-        <p className="mt-2 text-aqua-600">
+        <p className="mt-2 text-aqua-600 dark:text-aqua-300">
           Personalized water intake based on Austin&apos;s current weather.
         </p>
       </header>
@@ -247,7 +247,7 @@ export default function Recommend() {
             onChange={handleExerciseChange}
             className="h-4 w-4 accent-aqua-600"
           />
-          <span className="text-sm font-medium text-aqua-800">
+          <span className="text-sm font-medium text-aqua-800 dark:text-aqua-200">
             I plan to exercise today
           </span>
         </label>
@@ -271,7 +271,7 @@ export default function Recommend() {
 
       {/* Error */}
       {error && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-6 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-4 text-sm text-red-700 dark:text-red-200">
           {error}
         </div>
       )}
@@ -280,11 +280,11 @@ export default function Recommend() {
       {result && (
         <div className="space-y-6">
           {/* Big number */}
-          <div className="rounded-2xl border border-aqua-300 bg-aqua-50 p-6 text-center shadow-sm">
-            <p className="text-6xl font-extrabold text-aqua-700">{result.cups}</p>
-            <p className="mt-1 text-lg font-semibold text-aqua-900">cups per day</p>
-            <p className="text-sm text-aqua-600">{result.liters} liters</p>
-            <p className="mt-3 text-sm text-aqua-700 leading-relaxed">{result.reason}</p>
+          <div className="rounded-2xl border border-aqua-300 dark:border-slate-700 bg-aqua-50 dark:bg-slate-800 p-6 text-center shadow-sm">
+            <p className="text-6xl font-extrabold text-aqua-700 dark:text-aqua-300">{result.cups}</p>
+            <p className="mt-1 text-lg font-semibold text-aqua-900 dark:text-slate-100">cups per day</p>
+            <p className="text-sm text-aqua-600 dark:text-aqua-300">{result.liters} liters</p>
+            <p className="mt-3 text-sm text-aqua-700 dark:text-aqua-200 leading-relaxed">{result.reason}</p>
             <FactorList factors={result.factors} />
           </div>
 
@@ -299,7 +299,7 @@ export default function Recommend() {
           {/* Nearest fountains */}
           {result.nearestFountains.length > 0 && (
             <section>
-              <h2 className="mb-3 text-base font-semibold text-aqua-800">
+              <h2 className="mb-3 text-base font-semibold text-aqua-800 dark:text-aqua-200">
                 Nearest Water Sources
               </h2>
               <div className="space-y-3">
