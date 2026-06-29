@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { submitFountain } from '../lib/firestore'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../components/Toast/toastContext'
 import { AUSTIN_CENTER } from '../lib/geo'
 import type { FountainType } from '../types'
 
@@ -26,6 +27,7 @@ interface SubmitForm {
 
 export default function Submit() {
   const { currentUser, firebaseReady } = useAuth()
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [form, setForm] = useState<SubmitForm>({
     name: '',
@@ -96,6 +98,7 @@ export default function Submit() {
         currentUser,
       )
       setDone(true)
+      toast('Submitted for review', { type: 'success' })
       setTimeout(() => navigate('/'), 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not submit fountain.')
