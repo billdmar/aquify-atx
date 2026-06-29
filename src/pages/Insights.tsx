@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react'
 import { useFountains } from '../context/FountainContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { computeInsights } from '../lib/insights'
 import { typeLabel } from '../lib/fountainTypes'
 import type { FountainType, FountainStatus } from '../types'
@@ -72,6 +73,7 @@ function BarChart({
 }
 
 export default function Insights() {
+  useDocumentTitle('Insights')
   const { fountains, loading, error } = useFountains()
   const insights = useMemo(() => computeInsights(fountains), [fountains])
 
