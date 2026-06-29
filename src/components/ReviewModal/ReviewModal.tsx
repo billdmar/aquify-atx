@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../Toast/toastContext'
 import { addReview } from '../../lib/firestore'
 import type { Fountain } from '../../types'
 
@@ -17,6 +18,7 @@ interface ReviewErrors {
 
 export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   const { currentUser } = useAuth()
+  const { toast } = useToast()
 
   const [rating, setRating] = useState(0)
   const [hovered, setHovered] = useState(0)
@@ -121,6 +123,7 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
     try {
       await addReview(fountain.id, { rating, comment: comment.trim() }, currentUser)
       setSuccess(true)
+      toast('Review submitted', { type: 'success' })
       setTimeout(() => {
         handleClose()
       }, 1500)

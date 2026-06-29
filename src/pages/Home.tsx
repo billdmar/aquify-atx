@@ -15,9 +15,12 @@ import {
 } from '../lib/favorites'
 import { useGeolocation } from '../hooks/useGeolocation'
 import { createFountainSearch, searchFountains } from '../lib/search'
+import { useReviewStats } from '../hooks/useReviewStats'
+import { useToast } from '../components/Toast/toastContext'
 import FilterBar from '../components/FilterBar/FilterBar'
 import FountainList from '../components/FountainList/FountainList'
 import ReviewModal from '../components/ReviewModal/ReviewModal'
+import { SkeletonCard } from '../components/Skeleton/Skeleton'
 import type { Fountain, FilterState, FountainType, FountainView } from '../types'
 
 // Leaflet is heavy and not SSR-safe — load it lazily.
@@ -36,6 +39,8 @@ const initialFilters: FilterState = {
 export default function Home() {
   const { fountains, loading, error } = useFountains()
   const { currentUser } = useAuth()
+  const { stats } = useReviewStats()
+  const { toast } = useToast()
   const [filters, setFilters] = useState<FilterState>(initialFilters)
   // Geolocation ("Near me") — the hook surfaces a status note so the button
   // never fails silently when the API is missing or permission is denied.
@@ -83,8 +88,10 @@ export default function Home() {
     try {
       if (isSaved) {
         await removeFavorite(fountain.id, currentUser)
+        toast('Removed', { type: 'info' })
       } else {
         await saveFavorite(fountain.id, currentUser)
+        toast('Saved', { type: 'success' })
       }
     } catch {
       // Roll back on failure (e.g. not signed in with Firebase configured).
@@ -212,8 +219,14 @@ export default function Home() {
 
         <section className="min-h-[60vh]">
           {loading && (
-            <div className="flex h-[60vh] items-center justify-center text-aqua-700">
-              Loading fountains…
+            <div
+              role="status"
+              aria-label="Loading fountains"
+              className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
           )}
           {error && (
@@ -238,6 +251,7 @@ export default function Home() {
                   favoriteIds={favoriteIds}
                   onToggleSave={handleToggleSave}
                   canSave={canSave}
+                  stats={stats}
                 />
               </Suspense>
             </div>
@@ -250,6 +264,7 @@ export default function Home() {
               onLocate={handleLocate}
               favoriteIds={favoriteIds}
               onToggleSave={canSave ? handleToggleSave : undefined}
+              stats={stats}
             />
           )}
         </section>

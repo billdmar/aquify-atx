@@ -17,6 +17,8 @@ import { typeLabel, typeBadgeClass, statusClass } from '../lib/fountainTypes'
 import ReviewList from '../components/ReviewList/ReviewList'
 import ReviewModal from '../components/ReviewModal/ReviewModal'
 import ShareButton from '../components/ShareButton/ShareButton'
+import { Skeleton } from '../components/Skeleton/Skeleton'
+import { useToast } from '../components/Toast/toastContext'
 import type { Fountain, Review } from '../types'
 
 function directionsUrl(f: Fountain): string {
@@ -27,6 +29,7 @@ export default function FountainDetail() {
   const { id } = useParams<{ id: string }>()
   const { fountains, loading: fountainsLoading } = useFountains()
   const { currentUser } = useAuth()
+  const { toast } = useToast()
 
   const fountain = fountains.find((f) => f.id === id)
 
@@ -75,8 +78,13 @@ export default function FountainDetail() {
       wasSaved ? ids.filter((x) => x !== fountain.id) : [...ids, fountain.id],
     )
     try {
-      if (wasSaved) await removeFavorite(fountain.id, currentUser)
-      else await saveFavorite(fountain.id, currentUser)
+      if (wasSaved) {
+        await removeFavorite(fountain.id, currentUser)
+        toast('Removed', { type: 'info' })
+      } else {
+        await saveFavorite(fountain.id, currentUser)
+        toast('Saved', { type: 'success' })
+      }
     } catch {
       setFavoriteIds((ids) =>
         wasSaved ? [...ids, fountain.id] : ids.filter((x) => x !== fountain.id),
@@ -88,9 +96,17 @@ export default function FountainDetail() {
     return (
       <div
         role="status"
-        className="flex min-h-[50vh] items-center justify-center text-aqua-700"
+        aria-label="Loading fountain"
+        className="mx-auto max-w-2xl px-4 py-8"
       >
-        Loading…
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="mt-4 h-7 w-2/3" />
+        <Skeleton className="mt-2 h-4 w-1/2" />
+        <div className="mt-4 flex gap-2">
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+        <Skeleton className="mt-6 h-24 w-full" />
       </div>
     )
   }
