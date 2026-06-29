@@ -4,8 +4,9 @@
 
 [![CI](https://github.com/billdmar/aquify-atx/actions/workflows/ci.yml/badge.svg)](https://github.com/billdmar/aquify-atx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white&style=for-the-badge)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white&style=for-the-badge)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white&style=for-the-badge)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth+Firestore-FFCA28?logo=firebase&logoColor=black&style=for-the-badge)](https://firebase.google.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white&style=for-the-badge)](https://tailwindcss.com)
 [![Leaflet](https://img.shields.io/badge/Leaflet-OpenStreetMap-199900?logo=leaflet&logoColor=white&style=for-the-badge)](https://leafletjs.com)
@@ -25,7 +26,7 @@
 - **Filters + Near Me** — filter by type, ADA accessibility, active status, free-text search, and distance radius; one-tap geolocation.
 - **Firebase Auth** — email/password and Google sign-in, protected routes, per-user profile.
 - **Community submissions & reviews** — authenticated users can submit new fountains and leave star-rated reviews; Firestore security rules enforce owner-only edits.
-- **Climate-driven hydration engine** — rule-based model (`src/recommend/hydroEngine.js`) pulls live Open-Meteo weather data (temp, heat index, UV, humidity) and recommends daily water intake plus the 3 nearest open fountains.
+- **Climate-driven hydration engine** — rule-based model (`src/recommend/hydroEngine.ts`) pulls live Open-Meteo weather data (temp, heat index, UV, humidity) and recommends daily water intake plus the 3 nearest open fountains.
 - **Responsive** — fluid layout works from 390 px mobile up to wide desktop.
 - **Demo mode** — runs fully offline on committed seed data; no Firebase config required to explore the map, filters, and hydration engine.
 
@@ -66,13 +67,14 @@
 
 | Layer | Choice |
 |-------|--------|
-| Frontend | React 18 + Vite, React Router v6, JavaScript |
+| Frontend | React 19 + Vite 8, React Router v7, **TypeScript (strict)** |
 | Styling | Tailwind CSS v4 |
 | Map | Leaflet + react-leaflet (OpenStreetMap tiles — no API key) |
 | Auth / DB | Firebase Authentication + Cloud Firestore (v9 modular SDK) |
+| AI (optional) | Google Gemini via a Vercel serverless proxy (key never reaches the browser) |
 | Weather | Open-Meteo API (free, key-less) |
-| Tests | Vitest + React Testing Library · **150+ passing tests** |
-| CI | GitHub Actions — lint + build + test on every push |
+| Tests | Vitest + React Testing Library · **211 passing tests** |
+| CI | GitHub Actions — typecheck + lint + build + test on every push |
 | Hosting | Firebase Hosting / Vercel |
 
 ---
@@ -126,7 +128,7 @@ Open [http://localhost:5173](http://localhost:5173). The map, filters, and hydra
 
 ## 💧 Hydration Recommendation Model
 
-A transparent, rule-based engine in `src/recommend/hydroEngine.js` — not a black box. Live conditions come from Open-Meteo for downtown Austin; the engine falls back to documented warm-season averages when the API is unavailable.
+A transparent, rule-based engine in `src/recommend/hydroEngine.ts` — not a black box. Live conditions come from Open-Meteo for downtown Austin; the engine falls back to documented warm-season averages when the API is unavailable.
 
 | Condition | Adjustment |
 |-----------|-----------|
@@ -141,9 +143,9 @@ The recommendation surfaces the specific weather factors that raised it and name
 
 ### 🤖 Gemini AI (optional enrichment)
 
-On top of the deterministic engine, the page calls Google's **Gemini** (`gemini-2.0-flash`) for a friendly, Austin-specific hydration tip and a second-opinion cup count. Because Aquify is a **static site**, the API key must never reach the browser — so the call is proxied through a **Vercel serverless function** at [`api/hydrate.js`](api/hydrate.js):
+On top of the deterministic engine, the page calls Google's **Gemini** (`gemini-2.0-flash`) for a friendly, Austin-specific hydration tip and a second-opinion cup count. Because Aquify is a **static site**, the API key must never reach the browser — so the call is proxied through a **Vercel serverless function** at [`api/hydrate.ts`](api/hydrate.ts):
 
-- The client (`src/recommend/aiHydrate.js`) POSTs the current weather to `/api/hydrate`.
+- The client (`src/recommend/aiHydrate.ts`) POSTs the current weather to `/api/hydrate`.
 - The function reads `GEMINI_API_KEY` from `process.env`, calls the Gemini REST API, validates the JSON, and returns `{ ok, cups, tip, source }`.
 - If the key is missing or anything fails, the function returns `{ ok: false }` and the UI **silently falls back** to the rule-based result — the app works perfectly with or without AI.
 
@@ -156,19 +158,24 @@ On top of the deterministic engine, the page calls Google's **Gemini** (`gemini-
 ```
 aquify-atx/
 ├── src/
-│   ├── components/   Map, FountainList, FountainCard, FilterBar,
-│   │                 ReviewModal, NavBar, PrivateRoute
-│   ├── context/      AuthContext, FountainContext
-│   ├── lib/          firebase, auth, firestore, geo (Haversine distance)
-│   ├── pages/        Home, Login, Register, Profile, Submit, Recommend, About
-│   ├── recommend/    hydroEngine.js + hydroEngine.test.js
+│   ├── types.ts      single-source domain model (Fountain, Review, …)
+│   ├── components/   Map (+ FountainPopup), FountainList, FountainCard,
+│   │                 FilterBar, ReviewModal, ReviewList, NavBar, PrivateRoute
+│   ├── context/      AuthContext, FountainContext (memoized values)
+│   ├── hooks/        useGeolocation
+│   ├── lib/          firebase, auth, firestore, favorites, geo (Haversine),
+│   │                 fountainTypes (shared labels/colors)
+│   ├── pages/        Home, Login, Register, Profile, Submit, Recommend,
+│   │                 FountainDetail, About
+│   ├── recommend/    hydroEngine.ts (rule-based) + aiHydrate.ts (Gemini client)
 │   └── data/         fountains.json (30+ Austin locations, seed source)
+├── api/hydrate.ts    Vercel serverless Gemini proxy (key stays server-side)
 ├── scripts/seed.js   Firestore seeder (Admin SDK)
-├── firestore.rules   committed security rules
+├── firestore.rules   committed, validated security rules
 └── .github/workflows/ci.yml
 ```
 
-**Testing:** 150+ passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, component rendering, and filter logic. ESLint clean. GitHub Actions runs lint → build → test on every push.
+**Testing:** 211 passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, component rendering, and filter logic. **Strict TypeScript + ESLint clean.** GitHub Actions runs typecheck → lint → build → test on every push.
 
 **Separation of concerns:** UI components are stateless and receive data via React Context; all Firebase and weather I/O is isolated in `src/lib/` and `src/recommend/`, making the core map and filter experience fully testable without mocking an entire backend.
 

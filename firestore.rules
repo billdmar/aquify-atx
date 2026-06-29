@@ -1,26 +1,77 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- Validation helpers ---------------------------------------------
+    // Defense-in-depth: client-side checks are UX only; these run server-side.
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // A review create must be well-formed: owned by the caller, 1–5 star
+    // integer rating, non-empty comment ≤ 500 chars, and zero upvotes.
+    function isValidReview() {
+      let d = request.resource.data;
+      return d.authorUid == request.auth.uid
+        && d.fountainId is string && d.fountainId.size() > 0
+        && d.rating is int && d.rating >= 1 && d.rating <= 5
+        && d.comment is string && d.comment.size() > 0 && d.comment.size() <= 500
+        && d.upvotes == 0
+        // authorName is public-facing; never persist an email here.
+        && d.authorName is string && d.authorName.size() <= 120;
+    }
+
+    // A submission create must be owned by the caller and carry a sane
+    // fountainData payload, in 'pending' status.
+    function isValidSubmission() {
+      let d = request.resource.data;
+      let f = d.fountainData;
+      return d.authorUid == request.auth.uid
+        && d.status == 'pending'
+        && f.name is string && f.name.size() > 0 && f.name.size() <= 200
+        && f.address is string && f.address.size() <= 300
+        && f.lat is number && f.lat >= -90 && f.lat <= 90
+        && f.lng is number && f.lng >= -180 && f.lng <= 180
+        && f.type in ['fountain', 'bottle-filler', 'both']
+        && f.accessible is bool;
+    }
+
+    // Only the upvote counter may change on a review update (no rewriting
+    // someone else's stars/comment); owner may still delete their own.
+    function isUpvoteOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['upvotes']);
+    }
+
     match /fountains/{fountainId} {
       allow read: if true;
       allow write: if false; // admin SDK only via seed script
     }
+
     match /submissions/{submissionId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorUid;
+      allow create: if isSignedIn() && isValidSubmission();
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.authorUid;
     }
+
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorUid;
+      allow create: if isSignedIn() && isValidReview();
+      // Owner may edit/delete their own review; anyone signed in may upvote
+      // (and only the upvote field may change on that path).
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.authorUid || isUpvoteOnly()
+      );
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.authorUid;
     }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
 
       // Saved fountains — a user may only read/write their own favorites.
       match /favorites/{fountainId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
     }
   }

@@ -1,13 +1,13 @@
 // About — project description, team, stack, data sources, and disclaimer.
 
 const STACK = [
-  'React 18 + Vite',
-  'React Router v6',
+  'React 19 + Vite 8 (TypeScript, strict)',
+  'React Router v7',
   'Leaflet + react-leaflet (OpenStreetMap)',
   'Firebase Authentication + Firestore',
   'Open-Meteo weather API',
   'Tailwind CSS v4',
-  'Vitest',
+  'Vitest + React Testing Library',
 ]
 
 export default function About() {
