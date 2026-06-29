@@ -8,6 +8,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useFountains } from '../context/FountainContext'
+import ShareButton from '../components/ShareButton/ShareButton'
 import { getHydrationRecommendation } from '../recommend/hydroEngine'
 import { getAiHydration } from '../recommend/aiHydrate'
 import type {
@@ -286,6 +287,14 @@ export default function Recommend() {
             <p className="text-sm text-aqua-600 dark:text-aqua-300">{result.liters} liters</p>
             <p className="mt-3 text-sm text-aqua-700 dark:text-aqua-200 leading-relaxed">{result.reason}</p>
             <FactorList factors={result.factors} />
+            <div className="mt-4 flex justify-center">
+              <ShareButton
+                title="My Austin hydration plan"
+                text={`Aquify ATX suggests ${result.cups} cups today`}
+                url={window.location.origin}
+                label="Share"
+              />
+            </div>
           </div>
 
           {/* AI-powered tip. Shows a subtle skeleton while the best-effort
