@@ -6,6 +6,7 @@
 import { Link } from 'react-router-dom'
 import type { Fountain } from '../../types'
 import { typeLabel, typeBadgeClass } from '../../lib/fountainTypes'
+import { RatingSummary } from '../ReviewList/ratingDisplay'
 
 /** Universal cross-platform directions link (opens Google/Apple Maps). */
 function directionsUrl(fountain: Fountain): string {
@@ -26,6 +27,7 @@ interface FountainPopupProps {
   saved?: boolean
   onToggleSave?: (f: Fountain) => void
   canSave?: boolean
+  stats?: { avg: number; count: number }
 }
 
 export default function FountainPopup({
@@ -35,6 +37,7 @@ export default function FountainPopup({
   saved = false,
   onToggleSave,
   canSave = false,
+  stats,
 }: FountainPopupProps) {
   return (
     <div className="min-w-[200px] leading-relaxed">
@@ -45,6 +48,12 @@ export default function FountainPopup({
         {fountain.name}
       </Link>
       <p className="mt-0.5 text-[0.8rem] text-slate-500">{fountain.address}</p>
+
+      {stats && stats.count > 0 && (
+        <p className="mt-1">
+          <RatingSummary rating={stats.avg} count={stats.count} />
+        </p>
+      )}
 
       <span
         className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[0.7rem] font-semibold ${typeBadgeClass(

@@ -2,43 +2,7 @@
 // the fountain detail page. Presentational: receives reviews as a prop.
 
 import type { Review } from '../../types'
-
-/** Inline star row for a 0–5 rating (rounds to nearest whole star). */
-function Stars({ rating, label }: { rating: number; label?: string }) {
-  const rounded = Math.round(rating)
-  return (
-    <span
-      className="inline-flex items-center"
-      role="img"
-      aria-label={label ?? `${rating.toFixed(1)} out of 5 stars`}
-    >
-      {[1, 2, 3, 4, 5].map((s) => (
-        <svg
-          key={s}
-          viewBox="0 0 24 24"
-          className="h-4 w-4"
-          fill={rounded >= s ? '#F59E0B' : 'none'}
-          stroke={rounded >= s ? '#F59E0B' : '#94A3B8'}
-          strokeWidth={1.5}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M11.48 3.5a.56.56 0 0 1 1.04 0l2.12 5.11a.56.56 0 0 0 .48.35l5.52.44c.5.04.7.66.32.99l-4.2 3.6a.56.56 0 0 0-.18.56l1.28 5.38a.56.56 0 0 1-.84.61l-4.72-2.88a.56.56 0 0 0-.59 0l-4.72 2.88a.56.56 0 0 1-.84-.61l1.28-5.38a.56.56 0 0 0-.18-.56l-4.2-3.6a.56.56 0 0 1 .32-.99l5.52-.44a.56.56 0 0 0 .48-.35L11.48 3.5z"
-          />
-        </svg>
-      ))}
-    </span>
-  )
-}
-
-/** Average rating across reviews, or null when there are none. */
-function averageRating(reviews: Review[]): number | null {
-  if (!reviews.length) return null
-  const total = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0)
-  return total / reviews.length
-}
+import { Stars, averageRating } from './ratingDisplay'
 
 interface ReviewListProps {
   reviews: Review[]

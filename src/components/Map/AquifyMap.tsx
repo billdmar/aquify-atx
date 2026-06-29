@@ -129,6 +129,7 @@ interface FountainMarkerProps {
   onReview?: (f: Fountain) => void
   onToggleSave?: (f: Fountain) => void
   canSave: boolean
+  stats?: { avg: number; count: number }
 }
 
 const FountainMarker = memo(function FountainMarker({
@@ -138,6 +139,7 @@ const FountainMarker = memo(function FountainMarker({
   onReview,
   onToggleSave,
   canSave,
+  stats,
 }: FountainMarkerProps) {
   return (
     <Marker
@@ -154,6 +156,7 @@ const FountainMarker = memo(function FountainMarker({
           saved={saved}
           onToggleSave={onToggleSave}
           canSave={canSave}
+          stats={stats}
         />
       </Popup>
     </Marker>
@@ -171,6 +174,7 @@ interface AquifyMapProps {
   favoriteIds?: string[]
   onToggleSave?: (f: Fountain) => void
   canSave?: boolean
+  stats?: Record<string, { avg: number; count: number }>
 }
 
 export default function AquifyMap({
@@ -182,6 +186,7 @@ export default function AquifyMap({
   favoriteIds = [],
   onToggleSave,
   canSave = false,
+  stats,
 }: AquifyMapProps) {
   const { currentUser } = useAuth()
   const mapCenter = center ?? AUSTIN_CENTER
@@ -222,6 +227,7 @@ export default function AquifyMap({
             onReview={onReview}
             onToggleSave={onToggleSave}
             canSave={canSave}
+            stats={stats?.[fountain.id]}
           />
         ))}
       </MarkerClusterGroup>

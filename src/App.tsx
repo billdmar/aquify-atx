@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { FountainProvider } from './context/FountainContext'
 import NavBar from './components/NavBar/NavBar'
+import { ToastProvider } from './components/Toast/ToastProvider'
 import PrivateRoute from './components/PrivateRoute/PrivateRoute'
 import AdminRoute from './components/AdminRoute/AdminRoute'
 import Home from './pages/Home'
@@ -37,7 +38,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <FountainProvider>
-          <div className="flex min-h-screen flex-col">
+          <ToastProvider>
+            <div className="flex min-h-screen flex-col">
             <a
               href="#main-content"
               className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-[1000] focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-aqua-800 focus:shadow"
@@ -91,7 +93,8 @@ function App() {
                 </Routes>
               </Suspense>
             </main>
-          </div>
+            </div>
+          </ToastProvider>
         </FountainProvider>
       </AuthProvider>
     </BrowserRouter>
