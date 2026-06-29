@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext'
 import { FountainProvider } from './context/FountainContext'
 import NavBar from './components/NavBar/NavBar'
 import PrivateRoute from './components/PrivateRoute/PrivateRoute'
+import AdminRoute from './components/AdminRoute/AdminRoute'
 import Home from './pages/Home'
 
 // Code-split the non-landing routes so the initial bundle only pays for Home
@@ -17,6 +18,7 @@ const Submit = lazy(() => import('./pages/Submit'))
 const Recommend = lazy(() => import('./pages/Recommend'))
 const About = lazy(() => import('./pages/About'))
 const FountainDetail = lazy(() => import('./pages/FountainDetail'))
+const Admin = lazy(() => import('./pages/Admin'))
 
 function RouteFallback() {
   return (
@@ -65,6 +67,14 @@ function App() {
                       <PrivateRoute>
                         <Profile />
                       </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminRoute>
+                        <Admin />
+                      </AdminRoute>
                     }
                   />
                   <Route
