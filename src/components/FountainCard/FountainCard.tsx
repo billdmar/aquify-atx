@@ -31,10 +31,10 @@ export default function FountainCard({
   const statusDotClass = statusDot(fountain.status)
 
   return (
-    <article className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2 hover:shadow-md transition-shadow">
+    <article className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 flex flex-col gap-2 hover:shadow-md transition-shadow">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-gray-900 text-sm leading-snug">
+        <h3 className="font-semibold text-gray-900 dark:text-slate-100 text-sm leading-snug">
           {fountain.name}
         </h3>
         {distanceMiles != null && (
@@ -45,7 +45,7 @@ export default function FountainCard({
       </div>
 
       {/* Address */}
-      <p className="text-xs text-gray-500 leading-snug">{fountain.address}</p>
+      <p className="text-xs text-gray-500 dark:text-slate-400 leading-snug">{fountain.address}</p>
 
       {/* Badges row */}
       <div className="flex flex-wrap items-center gap-2">
@@ -71,7 +71,7 @@ export default function FountainCard({
 
       {/* Notes */}
       {fountain.notes && (
-        <p className="text-xs text-gray-400 italic leading-snug line-clamp-2">
+        <p className="text-xs text-gray-400 dark:text-slate-500 italic leading-snug line-clamp-2">
           {fountain.notes}
         </p>
       )}

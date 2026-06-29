@@ -68,8 +68,8 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-aqua-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <div className="min-h-screen bg-aqua-50 dark:bg-slate-900 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-8">
         {/* Logo / brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-aqua-600 mb-3">
@@ -83,17 +83,17 @@ export default function Register() {
               <path d="M12 2C9.5 6 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-4.5-8-7-12z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-aqua-900 tracking-wide">
+          <h1 className="text-2xl font-bold text-aqua-900 dark:text-slate-100 tracking-wide">
             CREATE ACCOUNT
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Join Aquify ATX</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Join Aquify ATX</p>
         </div>
 
         {/* Demo-mode banner */}
         {!firebaseReady && (
           <div
             role="status"
-            className="mb-5 rounded-lg bg-aqua-50 border border-aqua-200 px-4 py-3 text-sm text-aqua-800"
+            className="mb-5 rounded-lg bg-aqua-50 dark:bg-slate-700/40 border border-aqua-200 dark:border-slate-700 px-4 py-3 text-sm text-aqua-800 dark:text-aqua-200"
           >
             Demo mode: configure Firebase in <code className="font-mono">.env</code> to enable accounts.
           </div>
@@ -101,7 +101,7 @@ export default function Register() {
 
         {/* Submit error */}
         {submitError && (
-          <div role="alert" className="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          <div role="alert" className="mb-5 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-200">
             {submitError}
           </div>
         )}
@@ -109,7 +109,7 @@ export default function Register() {
         <form noValidate onSubmit={handleSubmit} className="space-y-5">
           {/* Display Name */}
           <div>
-            <label htmlFor="reg-displayname" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="reg-displayname" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Display Name
             </label>
             <input
@@ -120,8 +120,8 @@ export default function Register() {
               onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setDisplayName(ev.target.value)}
               aria-describedby={errors.displayName ? 'reg-displayname-error' : undefined}
               aria-invalid={!!errors.displayName}
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
-                errors.displayName ? 'border-red-400' : 'border-slate-300'
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
+                errors.displayName ? 'border-red-400' : 'border-slate-300 dark:border-slate-600'
               }`}
             />
             {errors.displayName && (
@@ -133,7 +133,7 @@ export default function Register() {
 
           {/* Email */}
           <div>
-            <label htmlFor="reg-email" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="reg-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Email
             </label>
             <input
@@ -144,8 +144,8 @@ export default function Register() {
               onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setEmail(ev.target.value)}
               aria-describedby={errors.email ? 'reg-email-error' : undefined}
               aria-invalid={!!errors.email}
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
-                errors.email ? 'border-red-400' : 'border-slate-300'
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
+                errors.email ? 'border-red-400' : 'border-slate-300 dark:border-slate-600'
               }`}
             />
             {errors.email && (
@@ -157,7 +157,7 @@ export default function Register() {
 
           {/* Password */}
           <div>
-            <label htmlFor="reg-password" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="reg-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Password
             </label>
             <input
@@ -168,8 +168,8 @@ export default function Register() {
               onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setPassword(ev.target.value)}
               aria-describedby={errors.password ? 'reg-password-error' : undefined}
               aria-invalid={!!errors.password}
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
-                errors.password ? 'border-red-400' : 'border-slate-300'
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
+                errors.password ? 'border-red-400' : 'border-slate-300 dark:border-slate-600'
               }`}
             />
             {errors.password && (
@@ -181,7 +181,7 @@ export default function Register() {
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Confirm Password
             </label>
             <input
@@ -192,8 +192,8 @@ export default function Register() {
               onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(ev.target.value)}
               aria-describedby={errors.confirmPassword ? 'reg-confirm-password-error' : undefined}
               aria-invalid={!!errors.confirmPassword}
-              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 ${
-                errors.confirmPassword ? 'border-red-400' : 'border-slate-300'
+              className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aqua-500 dark:bg-slate-900 dark:text-slate-100 ${
+                errors.confirmPassword ? 'border-red-400' : 'border-slate-300 dark:border-slate-600'
               }`}
             />
             {errors.confirmPassword && (
@@ -214,7 +214,7 @@ export default function Register() {
         </form>
 
         {/* Login link */}
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{' '}
           <Link to="/login" className="font-medium text-aqua-600 hover:text-aqua-800 underline">
             Sign in

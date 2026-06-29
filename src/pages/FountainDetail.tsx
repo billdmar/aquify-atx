@@ -96,8 +96,8 @@ export default function FountainDetail() {
 
   if (!fountain) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center text-slate-600">
-        <h1 className="text-2xl font-bold text-aqua-800">Fountain not found</h1>
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center text-slate-600 dark:text-slate-400">
+        <h1 className="text-2xl font-bold text-aqua-800 dark:text-slate-100">Fountain not found</h1>
         <p className="mt-2">
           We couldn&apos;t find that fountain.{' '}
           <Link to="/" className="font-medium text-aqua-700 underline">
@@ -119,8 +119,8 @@ export default function FountainDetail() {
       </Link>
 
       <header className="mt-3">
-        <h1 className="text-2xl font-bold text-aqua-900">{fountain.name}</h1>
-        <p className="mt-1 text-sm text-slate-500">{fountain.address}</p>
+        <h1 className="text-2xl font-bold text-aqua-900 dark:text-slate-100">{fountain.name}</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{fountain.address}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${typeBadgeClass(
@@ -145,7 +145,7 @@ export default function FountainDetail() {
       </header>
 
       {fountain.notes && (
-        <p className="mt-4 text-sm italic text-slate-500">{fountain.notes}</p>
+        <p className="mt-4 text-sm italic text-slate-500 dark:text-slate-400">{fountain.notes}</p>
       )}
 
       <div className="mt-5 flex flex-wrap gap-2">
@@ -183,12 +183,12 @@ export default function FountainDetail() {
       </div>
 
       {!isFirebaseConfigured && (
-        <p className="mt-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <p className="mt-6 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           Demo mode — reviews are stored once Firebase is configured.
         </p>
       )}
 
-      <hr className="my-6 border-slate-100" />
+      <hr className="my-6 border-slate-100 dark:border-slate-700" />
 
       <ReviewList reviews={reviews} loading={reviewsLoading} />
 

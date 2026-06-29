@@ -3,6 +3,7 @@
 
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import ThemeToggle from '../ThemeToggle/ThemeToggle'
 
 const linkBase = 'px-3 py-2 rounded-md text-sm font-medium transition-colors'
 const linkClass = ({ isActive }: { isActive: boolean }): string =>
@@ -48,6 +49,8 @@ export default function NavBar() {
           <NavLink to="/about" className={linkClass}>
             About
           </NavLink>
+
+          <ThemeToggle />
 
           {currentUser ? (
             <div className="flex items-center gap-2 pl-2">

@@ -126,7 +126,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       {!isFirebaseConfigured && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mb-4 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           <strong>Demo mode.</strong> Showing {fountains.length} fountains from
           local seed data. Add Firebase credentials to <code>.env</code> to
           enable accounts, submissions, and reviews.
@@ -136,14 +136,14 @@ export default function Home() {
       {locationNote && (
         <p
           role="status"
-          className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800"
+          className="mb-4 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-4 py-2 text-sm text-amber-800 dark:text-amber-200"
         >
           {locationNote}
         </p>
       )}
 
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-aqua-800">
+        <h1 className="text-2xl font-bold text-aqua-800 dark:text-slate-100">
           Austin Water Fountains
         </h1>
         <div className="flex items-center gap-2">
@@ -156,14 +156,14 @@ export default function Home() {
           >
             {locating ? 'Locating…' : '📍 Near me'}
           </button>
-          <div className="inline-flex overflow-hidden rounded-md border border-aqua-300">
+          <div className="inline-flex overflow-hidden rounded-md border border-aqua-300 dark:border-slate-600">
             <button
               type="button"
               onClick={() => setView('map')}
               className={`px-3 py-2 text-sm font-medium ${
                 view === 'map'
                   ? 'bg-aqua-600 text-white'
-                  : 'bg-white text-aqua-700'
+                  : 'bg-white dark:bg-slate-800 text-aqua-700 dark:text-slate-300'
               }`}
             >
               Map
@@ -174,7 +174,7 @@ export default function Home() {
               className={`px-3 py-2 text-sm font-medium ${
                 view === 'list'
                   ? 'bg-aqua-600 text-white'
-                  : 'bg-white text-aqua-700'
+                  : 'bg-white dark:bg-slate-800 text-aqua-700 dark:text-slate-300'
               }`}
             >
               List
@@ -190,7 +190,7 @@ export default function Home() {
             onChange={setFilters}
             locationKnown={Boolean(userLocation)}
           />
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Showing {filtered.length} of {fountains.length} fountains
           </p>
         </aside>
@@ -202,7 +202,7 @@ export default function Home() {
             </div>
           )}
           {error && (
-            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-800">
+            <div className="rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-red-800 dark:text-red-200">
               Failed to load fountains: {error.message}
             </div>
           )}

@@ -83,10 +83,10 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
       : 0
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
       {/* Mobile toggle */}
       <div className="flex items-center justify-between px-4 py-3 md:hidden">
-        <span className="font-semibold text-sm text-gray-700">Filters</span>
+        <span className="font-semibold text-sm text-gray-700 dark:text-slate-300">Filters</span>
         <button
           type="button"
           aria-expanded={open}
@@ -105,7 +105,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
       >
         {/* Search */}
         <div className="flex flex-col gap-1">
-          <label htmlFor="filter-search" className="text-xs font-medium text-gray-600">
+          <label htmlFor="filter-search" className="text-xs font-medium text-gray-600 dark:text-slate-400">
             Search by name or address
           </label>
           <input
@@ -114,13 +114,13 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
             value={searchInput}
             onChange={handleSearchChange}
             placeholder="e.g. Barton Springs…"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-aqua-400 bg-white"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-aqua-400 bg-white dark:bg-slate-900 dark:text-slate-100"
           />
         </div>
 
         {/* Type checkboxes */}
         <fieldset>
-          <legend className="text-xs font-medium text-gray-600 mb-1">
+          <legend className="text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">
             Facility type
           </legend>
           <div className="flex flex-col gap-1.5">
@@ -132,7 +132,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
                   onChange={() => handleTypeToggle(value)}
                   className="w-4 h-4 accent-aqua-600"
                 />
-                <span className="text-sm text-gray-700">{label}</span>
+                <span className="text-sm text-gray-700 dark:text-slate-300">{label}</span>
               </label>
             ))}
           </div>
@@ -147,7 +147,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
               onChange={() => handleToggle('activeOnly')}
               className="w-4 h-4 accent-aqua-600"
             />
-            <span className="text-sm text-gray-700">Active locations only</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">Active locations only</span>
           </label>
 
           <label className="inline-flex items-center gap-3 cursor-pointer">
@@ -157,7 +157,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
               onChange={() => handleToggle('accessibleOnly')}
               className="w-4 h-4 accent-aqua-600"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-slate-300">
               <span aria-label="ADA accessible">♿</span> ADA accessible only
             </span>
           </label>
@@ -167,7 +167,7 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
         <div className="flex flex-col gap-1">
           <label
             htmlFor="filter-radius"
-            className="text-xs font-medium text-gray-600 flex items-center gap-2"
+            className="text-xs font-medium text-gray-600 dark:text-slate-400 flex items-center gap-2"
           >
             <span>Radius from my location</span>
             {!locationKnown && (
