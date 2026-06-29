@@ -20,15 +20,30 @@
 
 ---
 
+## 💡 Why I built this
+
+Austin summers regularly clear 100 °F, and the city's trail network (Lady Bird Lake, the Greenbelt) is dotted with public fountains that aren't on any single map. I wanted one place to **find the nearest working fountain and know how much to actually drink** given the day's heat — and to build it the way I'd build a production feature, not a toy.
+
+A few deliberate engineering bets:
+
+- **Explainable over "AI magic."** The hydration recommendation is a transparent, rule-based engine (`src/recommend/hydroEngine.ts`) that *shows its work* — every cup it adds is tied to a named weather factor. An optional Gemini call enriches it, but the app is fully functional without it.
+- **Secrets never reach the browser.** It's a static SPA, so the Gemini key lives only in a Vercel serverless function (`api/hydrate.ts`); the client just POSTs weather and gets back a validated payload, falling back to the rule engine on any failure.
+- **Security as committed code.** Firestore rules (`firestore.rules`) — including field/length validation and owner-only writes — live in the repo and are reviewable, not hidden in a console.
+- **Works with nothing configured.** A graceful "demo mode" runs the whole map, filters, and hydration engine offline on committed seed data, so the project is explorable in one `npm run dev` with no backend.
+
+---
+
 ## ✨ Features
 
-- **Interactive map** — Leaflet + OpenStreetMap, 30+ real Austin fountain locations, color-coded by type, with detail popups.
+- **Interactive clustered map** — Leaflet + OpenStreetMap, 30+ real Austin fountain locations color-coded by type, grouped into count bubbles that expand as you zoom.
 - **Filters + Near Me** — filter by type, ADA accessibility, active status, free-text search, and distance radius; one-tap geolocation.
+- **Fountain detail pages** — every fountain has a shareable `/fountain/:id` URL with full info, directions, save, and its visible review list.
 - **Firebase Auth** — email/password and Google sign-in, protected routes, per-user profile.
-- **Community submissions & reviews** — authenticated users can submit new fountains and leave star-rated reviews; Firestore security rules enforce owner-only edits.
-- **Climate-driven hydration engine** — rule-based model (`src/recommend/hydroEngine.ts`) pulls live Open-Meteo weather data (temp, heat index, UV, humidity) and recommends daily water intake plus the 3 nearest open fountains.
-- **Responsive** — fluid layout works from 390 px mobile up to wide desktop.
-- **Demo mode** — runs fully offline on committed seed data; no Firebase config required to explore the map, filters, and hydration engine.
+- **Community submissions & reviews** — authenticated users submit new fountains and leave star-rated reviews; validated, owner-scoped Firestore security rules.
+- **Climate-driven hydration engine** — transparent rule-based model over live Open-Meteo data (temp, heat index, UV, humidity), with an optional Gemini AI second opinion via a server-side proxy.
+- **Installable PWA** — offline-capable service worker caches the app shell, last-seen map tiles, and weather, for the no-signal trail.
+- **Dark mode** — system-aware, one-tap toggle, persisted.
+- **Type-safe & tested** — strict TypeScript end-to-end, 240+ Vitest tests with a CI coverage gate.
 
 ---
 
@@ -155,6 +170,28 @@ On top of the deterministic engine, the page calls Google's **Gemini** (`gemini-
 
 ## 🏗 Architecture & Project Structure
 
+Data flows one way: external sources → an isolated I/O layer (`lib/` + `recommend/`) → React Context → stateless presentational components. The Gemini key never crosses into the browser — it stays behind the serverless proxy.
+
+```mermaid
+flowchart TD
+    subgraph Browser["Browser (static SPA)"]
+        Pages["Pages<br/>Home · FountainDetail · Recommend · …"]
+        Ctx["Context<br/>AuthContext · FountainContext"]
+        Lib["I/O layer<br/>lib/* · recommend/*"]
+        Pages --> Ctx --> Lib
+    end
+
+    subgraph Vercel["Vercel"]
+        Proxy["api/hydrate.ts<br/>(serverless Gemini proxy)"]
+    end
+
+    Lib -->|auth + data| Firebase[("Firebase<br/>Auth · Firestore")]
+    Lib -->|weather| Meteo["Open-Meteo API"]
+    Lib -->|"POST weather"| Proxy
+    Proxy -->|"GEMINI_API_KEY<br/>(server-side only)"| Gemini["Google Gemini"]
+    Firebase -.->|"committed,<br/>validated rules"| Rules["firestore.rules"]
+```
+
 ```
 aquify-atx/
 ├── src/
@@ -175,7 +212,7 @@ aquify-atx/
 └── .github/workflows/ci.yml
 ```
 
-**Testing:** 211 passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, component rendering, and filter logic. **Strict TypeScript + ESLint clean.** GitHub Actions runs typecheck → lint → build → test on every push.
+**Testing:** 240+ passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, hooks, component rendering, and filter logic, behind a CI coverage gate. **Strict TypeScript + ESLint clean.** GitHub Actions runs typecheck → lint → build → test (with coverage) on every push.
 
 **Separation of concerns:** UI components are stateless and receive data via React Context; all Firebase and weather I/O is isolated in `src/lib/` and `src/recommend/`, making the core map and filter experience fully testable without mocking an entire backend.
 
