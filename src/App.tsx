@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext'
 import { FountainProvider } from './context/FountainContext'
 import NavBar from './components/NavBar/NavBar'
 import { ToastProvider } from './components/Toast/ToastProvider'
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
 import PrivateRoute from './components/PrivateRoute/PrivateRoute'
 import AdminRoute from './components/AdminRoute/AdminRoute'
 import Home from './pages/Home'
@@ -40,16 +41,17 @@ function App() {
         <FountainProvider>
           <ToastProvider>
             <div className="flex min-h-screen flex-col">
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-[1000] focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-aqua-800 focus:shadow"
-            >
-              Skip to main content
-            </a>
-            <NavBar />
-            <main id="main-content" className="flex-1">
-              <Suspense fallback={<RouteFallback />}>
-                <Routes>
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-[1000] focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-aqua-800 focus:shadow"
+              >
+                Skip to main content
+              </a>
+              <NavBar />
+              <main id="main-content" className="flex-1">
+                <ErrorBoundary>
+                  <Suspense fallback={<RouteFallback />}>
+                    <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
@@ -90,9 +92,10 @@ function App() {
                       </div>
                     }
                   />
-                </Routes>
-              </Suspense>
-            </main>
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+              </main>
             </div>
           </ToastProvider>
         </FountainProvider>
