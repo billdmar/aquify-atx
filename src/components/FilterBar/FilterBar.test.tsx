@@ -130,6 +130,26 @@ describe('FilterBar', () => {
     expect(slider).not.toBeDisabled()
   })
 
+  it('radius slider exposes aria-valuetext "Any" when no radius is set', () => {
+    render(
+      <FilterBar filters={defaultFilters} onChange={vi.fn()} locationKnown={true} />,
+    )
+    const slider = screen.getByRole('slider', { name: /radius in miles/i })
+    expect(slider).toHaveAttribute('aria-valuetext', 'Any')
+  })
+
+  it('radius slider exposes a human-readable aria-valuetext for a set radius', () => {
+    render(
+      <FilterBar
+        filters={{ ...defaultFilters, radiusMiles: 2 }}
+        onChange={vi.fn()}
+        locationKnown={true}
+      />,
+    )
+    const slider = screen.getByRole('slider', { name: /radius in miles/i })
+    expect(slider).toHaveAttribute('aria-valuetext', '2 miles')
+  })
+
   it('handles filters.types as a Set containing "fountain"', () => {
     render(
       <FilterBar

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { User } from 'firebase/auth'
 import type { Fountain } from '../../types'
@@ -98,6 +99,41 @@ describe('ReviewModal', () => {
     render(<ReviewModal fountain={sampleFountain} onClose={onClose} />)
     fireEvent.keyDown(document, { key: 'Enter' })
     expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('returns focus to the triggering element after the modal closes', () => {
+    // Harness: a trigger button that opens the modal, and unmounts it on close
+    // (mirrors Home, which only renders ReviewModal when reviewTarget is set).
+    function Harness() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open review
+          </button>
+          {open && (
+            <ReviewModal
+              fountain={sampleFountain}
+              onClose={() => setOpen(false)}
+            />
+          )}
+        </>
+      )
+    }
+
+    render(<Harness />)
+    const trigger = screen.getByRole('button', { name: /open review/i })
+    trigger.focus()
+    fireEvent.click(trigger)
+
+    // Modal is open and has taken focus off the trigger.
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(trigger).not.toHaveFocus()
+
+    // Close via Escape; focus must return to the trigger.
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
   })
 
   describe('logged-in path', () => {

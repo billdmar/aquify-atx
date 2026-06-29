@@ -186,6 +186,11 @@ export default function FilterBar({ filters, onChange, locationKnown = false }: 
               onChange={handleRadiusChange}
               className="flex-1 accent-aqua-600 disabled:opacity-40"
               aria-label="Radius in miles"
+              aria-valuetext={
+                filters.radiusMiles != null
+                  ? `${filters.radiusMiles} miles`
+                  : 'Any'
+              }
             />
             <span
               className={`text-sm font-medium w-12 text-right ${locationKnown ? 'text-aqua-700' : 'text-gray-400'}`}
