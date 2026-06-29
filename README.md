@@ -36,14 +36,16 @@ A few deliberate engineering bets:
 ## ✨ Features
 
 - **Interactive clustered map** — Leaflet + OpenStreetMap, 30+ real Austin fountain locations color-coded by type, grouped into count bubbles that expand as you zoom.
-- **Filters + Near Me** — filter by type, ADA accessibility, active status, free-text search, and distance radius; one-tap geolocation.
-- **Fountain detail pages** — every fountain has a shareable `/fountain/:id` URL with full info, directions, save, and its visible review list.
+- **Fuzzy search + filters + Near Me** — typo-tolerant search (Fuse.js) over name & address, plus filters by type, ADA accessibility, active status, and distance radius; one-tap geolocation.
+- **Fountain detail pages** — every fountain has a shareable `/fountain/:id` URL with full info, directions, save, and its visible review list; star ratings surface on cards and map popups too.
 - **Firebase Auth** — email/password and Google sign-in, protected routes, per-user profile.
-- **Community submissions & reviews** — authenticated users submit new fountains and leave star-rated reviews; validated, owner-scoped Firestore security rules.
+- **Community submissions & reviews** — authenticated users submit new fountains and leave star-rated reviews; validated, owner-scoped Firestore security rules. An admin-only moderation dashboard approves/rejects pending submissions.
 - **Climate-driven hydration engine** — transparent rule-based model over live Open-Meteo data (temp, heat index, UV, humidity), with an optional Gemini AI second opinion via a server-side proxy.
+- **Insights** — at-a-glance breakdown of fountains by type, status, and ADA accessibility (dependency-free charts).
+- **Native sharing** — Web Share API with a clipboard fallback on cards, detail pages, and hydration recommendations.
 - **Installable PWA** — offline-capable service worker caches the app shell, last-seen map tiles, and weather, for the no-signal trail.
 - **Dark mode** — system-aware, one-tap toggle, persisted.
-- **Type-safe & tested** — strict TypeScript end-to-end, 240+ Vitest tests with a CI coverage gate.
+- **Type-safe & tested** — strict TypeScript end-to-end; 340+ Vitest unit tests + a Playwright E2E suite, behind a CI coverage gate.
 
 ---
 
@@ -88,7 +90,7 @@ A few deliberate engineering bets:
 | Auth / DB | Firebase Authentication + Cloud Firestore (v9 modular SDK) |
 | AI (optional) | Google Gemini via a Vercel serverless proxy (key never reaches the browser) |
 | Weather | Open-Meteo API (free, key-less) |
-| Tests | Vitest + React Testing Library · **211 passing tests** |
+| Tests | Vitest + React Testing Library · **340+ passing tests** |
 | CI | GitHub Actions — typecheck + lint + build + test on every push |
 | Hosting | Firebase Hosting / Vercel |
 
@@ -212,7 +214,7 @@ aquify-atx/
 └── .github/workflows/ci.yml
 ```
 
-**Testing:** 240+ passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, hooks, component rendering, and filter logic, behind a CI coverage gate. **Strict TypeScript + ESLint clean.** GitHub Actions runs typecheck → lint → build → test (with coverage) on every push.
+**Testing:** 340+ passing Vitest + React Testing Library tests covering the hydration engine, Firestore helpers, hooks, component rendering, and filter logic, behind a CI coverage gate. **Strict TypeScript + ESLint clean.** GitHub Actions runs typecheck → lint → build → test (with coverage) on every push.
 
 **Separation of concerns:** UI components are stateless and receive data via React Context; all Firebase and weather I/O is isolated in `src/lib/` and `src/recommend/`, making the core map and filter experience fully testable without mocking an entire backend.
 
