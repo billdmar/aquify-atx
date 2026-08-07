@@ -47,10 +47,12 @@ service cloud.firestore {
     }
 
     // Only the upvote counter may change on a review update (no rewriting
-    // someone else's stars/comment); owner may still delete their own.
+    // someone else's stars/comment), and it may only increment by exactly one
+    // (no setting it to an arbitrary value); owner may still delete their own.
     function isUpvoteOnly() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['upvotes']);
+          .hasOnly(['upvotes'])
+        && request.resource.data.upvotes == resource.data.upvotes + 1;
     }
 
     // A moderation update only touches `status`, setting it to a terminal value.

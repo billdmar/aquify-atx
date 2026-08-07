@@ -114,8 +114,9 @@ function MapEffect({ focusId, fountains, userLocation }: MapEffectProps) {
     if (userLocation) {
       map.flyTo([userLocation.lat, userLocation.lng], 15, opts)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusId, userLocation])
+    // `fountains` is a dependency so a fly-to still fires if a `focusId` was
+    // set before the fountain list finished loading (find would miss until then).
+  }, [focusId, fountains, userLocation, map])
 
   return null
 }

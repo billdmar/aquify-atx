@@ -5,7 +5,7 @@ import { typeLabel, typeBadgeClass, statusClass, statusDot } from '../../lib/fou
 import ShareButton from '../ShareButton/ShareButton'
 import { RatingSummary } from '../ReviewList/ratingDisplay'
 
-/** Universal cross-platform directions link (Google/Apple Maps on iOS). */
+/** Google Maps directions link to the fountain's coordinates. */
 function directionsUrl(fountain: Fountain): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${fountain.lat},${fountain.lng}`
 }

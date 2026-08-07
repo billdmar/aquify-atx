@@ -8,7 +8,7 @@ import type { Fountain } from '../../types'
 import { typeLabel, typeBadgeClass } from '../../lib/fountainTypes'
 import { RatingSummary } from '../ReviewList/ratingDisplay'
 
-/** Universal cross-platform directions link (opens Google/Apple Maps). */
+/** Google Maps directions link to the fountain's coordinates. */
 function directionsUrl(fountain: Fountain): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${fountain.lat},${fountain.lng}`
 }
