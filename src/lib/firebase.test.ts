@@ -1,4 +1,4 @@
-// firebase.js exports isFirebaseConfigured and the lazy getAuthInstance /
+// firebase.ts exports isFirebaseConfigured and the lazy getAuthInstance /
 // getDbInstance getters. In the test environment no VITE_FIREBASE_* env vars
 // are set, so isFirebaseConfigured must be false and the getters must return
 // null (demo mode).

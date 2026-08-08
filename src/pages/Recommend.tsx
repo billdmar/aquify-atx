@@ -1,5 +1,5 @@
 /**
- * Recommend.jsx — Hydration Recommendation page.
+ * Recommend.tsx — Hydration Recommendation page.
  *
  * Fetches live Austin weather, scores it with the rule-based hydroEngine,
  * and optionally shows the 3 nearest active water fountains.
@@ -167,14 +167,16 @@ export default function Recommend() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // `exercise` is passed in explicitly (not read from state) so callers can
+  // refresh with a just-toggled value before React has committed the setState.
   const runRecommendation = useCallback(
-    async (lat: number | null, lng: number | null) => {
+    async (lat: number | null, lng: number | null, exercise: boolean) => {
       setLoading(true)
       setError(null)
       setAi(null)
       setAiLoading(false)
       try {
-        const rec = await getHydrationRecommendation(lat, lng, willExercise, fountains)
+        const rec = await getHydrationRecommendation(lat, lng, exercise, fountains)
         setResult(rec)
 
         // Best-effort AI enrichment. If the serverless Gemini proxy is
@@ -183,7 +185,7 @@ export default function Recommend() {
         setAiLoading(true)
         const aiResult = await getAiHydration({
           weather: rec.weather,
-          willExercise,
+          willExercise: exercise,
           baselineCups: rec.cups,
         })
         if (aiResult) setAi(aiResult)
@@ -195,37 +197,41 @@ export default function Recommend() {
         setAiLoading(false)
       }
     },
-    [willExercise, fountains],
+    [fountains],
   )
 
-  const handleGetRecommendation = () => {
-    setResult(null)
-    setAi(null)
-    setLocationDenied(false)
-    setError(null)
+  const handleGetRecommendation = useCallback(
+    (exercise: boolean) => {
+      setResult(null)
+      setAi(null)
+      setLocationDenied(false)
+      setError(null)
 
-    if (!navigator.geolocation) {
-      runRecommendation(null, null)
-      return
-    }
+      if (!navigator.geolocation) {
+        runRecommendation(null, null, exercise)
+        return
+      }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        runRecommendation(pos.coords.latitude, pos.coords.longitude)
-      },
-      () => {
-        setLocationDenied(true)
-        runRecommendation(null, null)
-      },
-      { timeout: 8000 },
-    )
-  }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          runRecommendation(pos.coords.latitude, pos.coords.longitude, exercise)
+        },
+        () => {
+          setLocationDenied(true)
+          runRecommendation(null, null, exercise)
+        },
+        { timeout: 8000 },
+      )
+    },
+    [runRecommendation],
+  )
 
   const handleExerciseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWillExercise(e.target.checked)
+    const next = e.target.checked
+    setWillExercise(next)
     // If a result already exists, refresh it immediately with the new flag.
     if (result) {
-      handleGetRecommendation()
+      handleGetRecommendation(next)
     }
   }
 
@@ -257,7 +263,7 @@ export default function Recommend() {
 
         <button
           type="button"
-          onClick={handleGetRecommendation}
+          onClick={() => handleGetRecommendation(willExercise)}
           disabled={loading || fountainsLoading}
           className="rounded-xl bg-aqua-600 px-6 py-2.5 text-sm font-bold text-white shadow hover:bg-aqua-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >

@@ -51,10 +51,7 @@ export function getLocalFountains(): Fountain[] {
 /**
  * Subscribe to the fountains collection. In demo mode (no Firebase), invokes
  * the callback once with local seed data and returns a no-op unsubscribe.
- *
- * @param {(fountains: object[]) => void} onData
- * @param {(err: Error) => void} [onError]
- * @returns {() => void} unsubscribe
+ * Returns an unsubscribe function.
  */
 export function subscribeToFountains(
   onData: (fountains: Fountain[]) => void,

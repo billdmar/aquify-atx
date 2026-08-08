@@ -36,7 +36,8 @@ export default function NavBar() {
   const closeMenu = () => setMenuOpen(false)
 
   // The nav links + auth section, shared between the inline (md+) and
-  // collapsed (mobile) layouts. `onNavigate` closes the mobile panel on click.
+  // collapsed (mobile) layouts. `closeMenu` (wired as each link's onClick)
+  // closes the mobile panel on navigation.
   const navContent = (
     <>
       <NavLink to="/" className={linkClass} end onClick={closeMenu}>

@@ -1,7 +1,7 @@
 /**
- * hydrate.test.js — Unit tests for the defensive Gemini response parser.
+ * hydrate.test.ts — Unit tests for the defensive Gemini response parser.
  *
- * These cover the parsing/validation logic in api/hydrate.js without making
+ * These cover the parsing/validation logic in api/hydrate.ts without making
  * any live API call (the handler itself is exercised only via this pure helper).
  */
 

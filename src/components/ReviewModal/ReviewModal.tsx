@@ -49,7 +49,7 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
         }
         setSuccess(true)
         toast('Review submitted', { type: 'success' })
-        setTimeout(() => {
+        closeTimer.current = setTimeout(() => {
           handleClose()
         }, 1500)
       },
@@ -57,7 +57,9 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   const { rating, comment } = values
 
   const dialogRef = useRef<HTMLDivElement>(null)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  // Auto-close timer after a successful submit; cleared on close/unmount so it
+  // never fires setState on an unmounted modal.
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // The element that had focus when the modal opened, so focus can be
   // restored to it on close (WCAG 2.4.3 — don't strand keyboard/SR users).
   const triggerRef = useRef<HTMLElement | null>(null)
@@ -75,11 +77,22 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
   }, [fountain])
 
   const handleClose = useCallback(() => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
     reset()
     setHovered(0)
     setSuccess(false)
     onClose()
   }, [onClose, reset])
+
+  // Clear any pending auto-close timer if the modal unmounts first.
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current)
+    }
+  }, [])
 
   // Escape key handler
   useEffect(() => {
@@ -148,7 +161,6 @@ export default function ReviewModal({ fountain, onClose }: ReviewModalProps) {
       >
         {/* Close button */}
         <button
-          ref={closeButtonRef}
           type="button"
           onClick={handleClose}
           aria-label="Close review dialog"

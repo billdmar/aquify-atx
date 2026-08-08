@@ -1,5 +1,5 @@
 /**
- * aiHydrate.test.js — Tests for the client-side Gemini proxy helper.
+ * aiHydrate.test.ts — Tests for the client-side Gemini proxy helper.
  *
  * Verifies the success path and that EVERY failure mode returns null so the
  * page falls back to the rule-based recommendation. fetch is injected/mocked.

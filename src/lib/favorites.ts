@@ -1,4 +1,4 @@
-// favorites.js — saved-fountain data access, sibling to firestore.js.
+// favorites.ts — saved-fountain data access, sibling to firestore.ts.
 //
 // Two modes, mirroring the rest of the app:
 //   • Firebase mode (configured): favorites live under
@@ -55,9 +55,6 @@ function writeDemoFavorites(ids: string[]): void {
  * Save a fountain to the current user's favorites.
  * In Firebase mode a signed-in `user` is required; in demo mode the fountain
  * id is appended to the localStorage list (no auth needed).
- *
- * @param {string} fountainId
- * @param {{uid:string}|null} [user]
  */
 export async function saveFavorite(
   fountainId: string,
@@ -79,9 +76,6 @@ export async function saveFavorite(
 
 /**
  * Remove a fountain from favorites.
- *
- * @param {string} fountainId
- * @param {{uid:string}|null} [user]
  */
 export async function removeFavorite(
   fountainId: string,
@@ -99,9 +93,6 @@ export async function removeFavorite(
 /**
  * One-shot fetch of the favorite fountain ids. In demo mode reads localStorage;
  * in Firebase mode requires a uid and reads the user's favorites subcollection.
- *
- * @param {string} [uid]
- * @returns {Promise<string[]>} favorite fountain ids
  */
 export async function getFavorites(uid?: string): Promise<string[]> {
   const db = getDbInstance()
@@ -117,11 +108,7 @@ export async function getFavorites(uid?: string): Promise<string[]> {
  * Subscribe to the user's favorites. In demo mode invokes the callback once
  * with the current localStorage list and returns a no-op unsubscribe; in
  * Firebase mode streams live updates from the favorites subcollection.
- *
- * @param {string} uid
- * @param {(ids: string[]) => void} onData
- * @param {(err: Error) => void} [onError]
- * @returns {() => void} unsubscribe
+ * Returns an unsubscribe function.
  */
 export function subscribeToFavorites(
   uid: string | undefined,
@@ -148,9 +135,6 @@ export function subscribeToFavorites(
 
 /**
  * Convenience check: is the given fountain id in the supplied id list?
- *
- * @param {string} fountainId
- * @param {string[]} favoriteIds
  */
 export function isFavorite(fountainId: string, favoriteIds: string[]): boolean {
   return Array.isArray(favoriteIds) && favoriteIds.includes(fountainId)

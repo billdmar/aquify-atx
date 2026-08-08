@@ -1,5 +1,5 @@
 /**
- * hydroEngine.js — Rule-based hydration recommendation engine for Austin, TX.
+ * hydroEngine.ts — Rule-based hydration recommendation engine for Austin, TX.
  *
  * SCORING TABLE (cups added to 8-cup baseline):
  * ┌─────────────────────────────────────┬──────┐

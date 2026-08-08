@@ -1,5 +1,5 @@
 /**
- * api/hydrate.js — Vercel Node serverless function (server-side Gemini proxy).
+ * api/hydrate.ts — Vercel Node serverless function (server-side Gemini proxy).
  *
  * Why this exists: Aquify ATX is a static Vite SPA. The Gemini API key must
  * NEVER ship in the public client bundle, so it lives only in this function's
@@ -56,8 +56,8 @@ const MAX_CUPS = 20
  * strip fences, locate the first {...} block, and JSON.parse inside a try/catch.
  * Exported so it can be unit-tested without a live API call.
  *
- * @param {string} text  — raw text returned by the model
- * @returns {{ cups: number, tip: string } | null}  null if unparseable/invalid
+ * @param text  raw text returned by the model
+ * @returns the parsed cups/tip, or null if unparseable/invalid
  */
 export function parseGeminiResponse(
   text: unknown,
